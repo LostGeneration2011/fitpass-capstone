@@ -3,8 +3,31 @@ generator client {
 }
 
 datasource db {
-  provider = "sqlite"
-  url      = env("DATABASE_URL_LOCAL")
+  provider = "postgresql"
+  url      = env("DATABASE_URL")
+}
+
+enum UserRole {
+  ADMIN
+  TEACHER
+  STUDENT
+}
+
+enum ClassType {
+  YOGA
+  PILATES
+  CARDIO
+  STRENGTH
+  ZUMBA
+  CROSSFIT
+  BOXING
+}
+
+enum AttendanceStatus {
+  PRESENT
+  ABSENT
+  LATE
+  EXCUSED
 }
 
 model User {
@@ -14,7 +37,7 @@ model User {
   name        String
   phone       String?
   avatar      String?
-  role        String   @default("STUDENT") // ADMIN, TEACHER, STUDENT
+  role        UserRole @default(STUDENT)
   isActive    Boolean  @default(true)
   createdAt   DateTime @default(now())
   updatedAt   DateTime @updatedAt
@@ -31,10 +54,10 @@ model Class {
   id          String    @id @default(cuid())
   name        String
   description String?
-  type        String    // YOGA, PILATES, CARDIO, STRENGTH, ZUMBA, CROSSFIT, BOXING
+  type        ClassType
   capacity    Int       @default(20)
   duration    Int       // in minutes
-  price       Float     // Changed from Decimal to Float for SQLite compatibility
+  price       Decimal   @db.Decimal(10,2)
   teacherId   String
   isActive    Boolean   @default(true)
   createdAt   DateTime  @default(now())
@@ -82,14 +105,14 @@ model Enrollment {
 }
 
 model Attendance {
-  id        String   @id @default(cuid())
+  id        String          @id @default(cuid())
   userId    String
   classId   String
   date      DateTime
-  status    String   // PRESENT, ABSENT, LATE, EXCUSED
+  status    AttendanceStatus
   notes     String?
-  createdAt DateTime @default(now())
-  updatedAt DateTime @updatedAt
+  createdAt DateTime        @default(now())
+  updatedAt DateTime        @updatedAt
   
   // Relations
   user  User  @relation(fields: [userId], references: [id])

@@ -2,26 +2,22 @@
   "version": 2,
   "builds": [
     {
-      "src": "api/**/*.ts",
-      "use": "@vercel/node"
+      "src": "src/server.ts",
+      "use": "@vercel/node",
+      "config": {
+        "includeFiles": ["src/**", "prisma/**"]
+      }
     }
   ],
   "routes": [
     {
-      "src": "/health",
-      "dest": "/api/health.ts"
-    },
-    {
-      "src": "/api/health",
-      "dest": "/api/api/health.ts"
-    },
-    {
-      "src": "/api/(.*)",
-      "dest": "/api/api/$1.ts"
-    },
-    {
       "src": "/(.*)",
-      "dest": "/api/index.ts"
+      "dest": "src/server.ts"
     }
-  ]
+  ],
+  "functions": {
+    "src/server.ts": {
+      "maxDuration": 30
+    }
+  }
 }
