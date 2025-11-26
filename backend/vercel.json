@@ -2,7 +2,7 @@
   "version": 2,
   "builds": [
     {
-      "src": "src/server.ts",
+      "src": "package.json",
       "use": "@vercel/node",
       "config": {
         "includeFiles": ["src/**", "prisma/**"]
@@ -12,12 +12,15 @@
   "routes": [
     {
       "src": "/(.*)",
-      "dest": "src/server.ts"
+      "dest": "dist/server.js"
     }
   ],
   "functions": {
-    "src/server.ts": {
+    "dist/server.js": {
       "maxDuration": 30
     }
+  },
+  "env": {
+    "NODE_ENV": "production"
   }
 }
