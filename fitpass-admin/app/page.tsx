@@ -42,8 +42,8 @@ export default function Home() {
               textDecoration: 'none',
               transition: 'background-color 0.2s'
             }}
-            onMouseOver={(e) => e.target.style.backgroundColor = '#2563eb'}
-            onMouseOut={(e) => e.target.style.backgroundColor = '#3b82f6'}
+            onMouseOver={(e) => (e.target as HTMLElement).style.backgroundColor = '#2563eb'}
+            onMouseOut={(e) => (e.target as HTMLElement).style.backgroundColor = '#3b82f6'}
           >
             Login
           </a>
@@ -58,8 +58,8 @@ export default function Home() {
               textDecoration: 'none',
               transition: 'background-color 0.2s'
             }}
-            onMouseOver={(e) => e.target.style.backgroundColor = '#059669'}
-            onMouseOut={(e) => e.target.style.backgroundColor = '#10b981'}
+            onMouseOver={(e) => (e.target as HTMLElement).style.backgroundColor = '#059669'}
+            onMouseOut={(e) => (e.target as HTMLElement).style.backgroundColor = '#10b981'}
           >
             Dashboard
           </a>
