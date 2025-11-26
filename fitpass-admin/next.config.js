@@ -2,16 +2,16 @@
 const nextConfig = {
   reactStrictMode: true,
   swcMinify: true,
+  output: 'export',
+  trailingSlash: true,
+  skipTrailingSlashRedirect: true,
+  distDir: 'out',
+  images: {
+    unoptimized: true
+  },
   experimental: {
-    serverComponentsExternalPackages: [],
-  },
-  compiler: {
-    styledComponents: true,
-  },
-  // Disable static generation for error pages to avoid SSR issues
-  async generateBuildId() {
-    return 'fitpass-admin-build'
-  },
+    esmExternals: 'loose'
+  }
 }
 
 module.exports = nextConfig
