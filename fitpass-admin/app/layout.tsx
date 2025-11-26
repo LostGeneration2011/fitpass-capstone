@@ -1,6 +1,4 @@
-import type { Metadata } from 'next'
-
-export const metadata: Metadata = {
+export const metadata = {
   title: 'FitPass Admin',
   description: 'FitPass Admin Dashboard',
 }
@@ -12,7 +10,12 @@ export default function RootLayout({
 }) {
   return (
     <html lang="en">
-      <body style={{ margin: 0, padding: 0, fontFamily: 'system-ui, sans-serif' }}>
+      <body style={{ 
+        margin: 0, 
+        padding: 0, 
+        fontFamily: 'system-ui, sans-serif',
+        backgroundColor: '#ffffff'
+      }}>
         {children}
       </body>
     </html>
