@@ -7,7 +7,7 @@
     "dev": "ts-node-dev --respawn --transpile-only src/server.ts",
     "build": "tsc && npx prisma generate",
     "start": "node dist/server.js",
-    "vercel-build": "npm run build",
+    "vercel-build": "npx prisma generate",
     "db:switch": "node scripts/switch-db.js",
     "db:local": "npm run db:switch local && npm run prisma:push",
     "db:cloud": "npm run db:switch cloud && npm run prisma:push",
