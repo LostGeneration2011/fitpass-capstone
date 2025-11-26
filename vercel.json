@@ -1,5 +1,0 @@
-{
-  "buildCommand": "npm install --prefix fitpass-admin && npm run build --prefix fitpass-admin",
-  "outputDirectory": "fitpass-admin/.next",
-  "installCommand": null
-}
