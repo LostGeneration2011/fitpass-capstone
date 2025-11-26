@@ -3,7 +3,14 @@ const nextConfig = {
   reactStrictMode: true,
   swcMinify: true,
   experimental: {
-    appDir: true,
+    serverComponentsExternalPackages: [],
+  },
+  compiler: {
+    styledComponents: true,
+  },
+  // Disable static generation for error pages to avoid SSR issues
+  async generateBuildId() {
+    return 'fitpass-admin-build'
   },
 }
 
