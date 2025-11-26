@@ -6,6 +6,7 @@ import morgan from 'morgan';
 // Routes
 import authRoutes from './routes/auth';
 import userRoutes from './routes/users';
+import debugRoutes from './routes/debug.routes';
 
 const app = express();
 
@@ -19,6 +20,7 @@ app.use(express.urlencoded({ extended: true }));
 // Routes
 app.use('/api/auth', authRoutes);
 app.use('/api/users', userRoutes);
+app.use('/api/debug', debugRoutes);
 
 // Health check
 app.get('/health', (req, res) => {
