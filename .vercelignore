@@ -1,2 +1,5 @@
 backend/
 fitpass-app/
+node_modules/
+.env*
+*.log
