@@ -6,7 +6,14 @@
   "scripts": {
     "dev": "ts-node-dev --respawn --transpile-only src/server.ts",
     "build": "tsc",
-    "start": "node dist/server.js"
+    "start": "node dist/server.js",
+    "db:switch": "node scripts/switch-db.js",
+    "db:local": "npm run db:switch local && npm run prisma:push",
+    "db:cloud": "npm run db:switch cloud && npm run prisma:push",
+    "prisma:generate": "npx prisma generate",
+    "prisma:push": "npx prisma db push",
+    "prisma:studio": "npx prisma studio",
+    "test:db": "npx ts-node test-db.ts"
   },
   "dependencies": {
     "@prisma/client": "^5.19.1",

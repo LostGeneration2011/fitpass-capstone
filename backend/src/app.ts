@@ -3,6 +3,7 @@ import cors from 'cors';
 import helmet from 'helmet';
 import morgan from 'morgan';
 import { prisma } from './config/prisma';
+import { getConnectionInfo } from './config/database-config';
 
 // Routes
 import authRoutes from './routes/auth';
@@ -28,17 +29,33 @@ app.get('/health', async (req, res) => {
   try {
     // Check database connection
     await prisma.$queryRaw`SELECT 1`;
+    const dbInfo = getConnectionInfo();
+    
     res.status(200).json({ 
       status: 'ok',
       timestamp: new Date().toISOString(),
-      database: 'connected'
+      database: {
+        status: 'connected',
+        environment: dbInfo.environment,
+        provider: dbInfo.provider,
+        isLocal: dbInfo.isLocal
+      },
+      service: 'fitpass-backend'
     });
   } catch (error) {
     console.error('Health check failed:', error);
+    const dbInfo = getConnectionInfo();
+    
     res.status(500).json({ 
       status: 'error',
       timestamp: new Date().toISOString(),
-      database: 'disconnected',
+      database: {
+        status: 'disconnected',
+        environment: dbInfo.environment,
+        provider: dbInfo.provider,
+        isLocal: dbInfo.isLocal
+      },
+      service: 'fitpass-backend',
       error: 'Database connection failed'
     });
   }
@@ -48,18 +65,32 @@ app.get('/health', async (req, res) => {
 app.get('/api/health', async (req, res) => {
   try {
     await prisma.$queryRaw`SELECT 1`;
+    const dbInfo = getConnectionInfo();
+    
     res.json({ 
       status: 'ok',
       timestamp: new Date().toISOString(),
-      database: 'connected',
+      database: {
+        status: 'connected',
+        environment: dbInfo.environment,
+        provider: dbInfo.provider,
+        isLocal: dbInfo.isLocal
+      },
       service: 'fitpass-backend'
     });
   } catch (error) {
     console.error('API health check failed:', error);
+    const dbInfo = getConnectionInfo();
+    
     res.status(500).json({ 
       status: 'error',
       timestamp: new Date().toISOString(),
-      database: 'disconnected',
+      database: {
+        status: 'disconnected',
+        environment: dbInfo.environment,
+        provider: dbInfo.provider,
+        isLocal: dbInfo.isLocal
+      },
       service: 'fitpass-backend',
       error: 'Database connection failed'
     });
