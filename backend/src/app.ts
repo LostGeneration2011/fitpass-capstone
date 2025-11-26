@@ -24,6 +24,23 @@ app.use('/api/auth', authRoutes);
 app.use('/api/users', userRoutes);
 app.use('/api/debug', debugRoutes);
 
+// Root route
+app.get('/', (req, res) => {
+  res.json({
+    message: 'FitPass Backend API',
+    version: '1.0.0',
+    status: 'running',
+    endpoints: {
+      health: '/health',
+      apiHealth: '/api/health',
+      auth: '/api/auth',
+      users: '/api/users',
+      debug: '/api/debug'
+    },
+    documentation: 'https://github.com/LostGeneration2011/fitpass-capstone'
+  });
+});
+
 // Health check
 app.get('/health', async (req, res) => {
   try {

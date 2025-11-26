@@ -94,12 +94,12 @@ function App() {
             fontSize: '0.875rem'
           }}>
             API Endpoint: <a 
-              href="https://fitpass-capstone-backend.vercel.app/health"
+              href="https://fitpass-capstone-fitpass-backendv-2.vercel.app/health"
               target="_blank"
               rel="noopener noreferrer"
               style={{ color: '#3b82f6', textDecoration: 'none' }}
             >
-              https://fitpass-capstone-backend.vercel.app/health
+              https://fitpass-capstone-fitpass-backendv-2.vercel.app/health
             </a>
           </p>
         </div>
