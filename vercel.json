@@ -5,12 +5,27 @@
       "src": "fitpass-admin/package.json", 
       "use": "@vercel/next",
       "config": { "distDir": ".next" }
+    },
+    {
+      "src": "backend/api/index.ts",
+      "use": "@vercel/node"
     }
   ],
   "routes": [
     {
+      "src": "/api/(.*)",
+      "dest": "backend/api/index.ts"
+    },
+    {
+      "src": "/health",
+      "dest": "backend/api/index.ts"
+    },
+    {
       "src": "/(.*)",
       "dest": "fitpass-admin/$1"
     }
-  ]
+  ],
+  "env": {
+    "DATABASE_URL": "@database_url"
+  }
 }
