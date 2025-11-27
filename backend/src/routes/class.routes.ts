@@ -1,10 +1,10 @@
 import { Router } from "express";
-import { 
-  createClass, 
-  getAllClasses, 
-  getClassById, 
-  updateClass, 
-  deleteClass 
+import {
+  createClass,
+  getAllClasses,
+  getClassById,
+  updateClass,
+  deleteClass
 } from "../controllers/class.controller";
 
 const router = Router();

@@ -1,49 +1,30 @@
 import { prisma } from "../config/prisma";
 
-interface CreateClassData {
-  name: string;
-  description?: string;
-  capacity?: number;
-  duration: number;
-}
-
-interface UpdateClassData {
-  name?: string;
-  description?: string;
-  capacity?: number;
-  duration?: number;
-  isActive?: boolean;
-}
-
 export class ClassService {
-  async createClass(data: CreateClassData) {
-    // Validate and filter only allowed fields
-    const validData = {
-      name: data.name,
-      description: data.description,
-      capacity: data.capacity || 20,
-      duration: data.duration,
-    };
+  async createClass(data: any) {
+    const allowed = ["name", "description", "capacity", "duration", "isActive"];
+
+    const filtered: any = {};
+    for (const key of allowed) {
+      if (data[key] !== undefined) filtered[key] = data[key];
+    }
+
+    if (!filtered.name) throw new Error("Class name is required.");
+    if (!filtered.duration) throw new Error("Class duration is required.");
 
     return prisma.class.create({
-      data: validData,
-      include: {
-        sessions: true,
-        enrollments: true
-      }
+      data: {
+        ...filtered,
+        capacity: filtered.capacity || 20,
+      },
     });
   }
 
   async getAllClasses() {
     return prisma.class.findMany({
-      where: { isActive: true },
       include: {
-        sessions: {
-          include: {
-            teacher: true
-          }
-        },
-        enrollments: true
+        sessions: true,
+        enrollments: true,
       }
     });
   }
@@ -52,52 +33,27 @@ export class ClassService {
     return prisma.class.findUnique({
       where: { id },
       include: {
-        sessions: {
-          include: {
-            teacher: true
-          }
-        },
-        enrollments: {
-          include: {
-            user: true
-          }
-        }
+        sessions: true,
+        enrollments: true,
       }
     });
   }
 
-  async updateClass(id: string, data: UpdateClassData) {
-    // Validate and filter only allowed fields
-    const validData: any = {};
-    
-    if (data.name !== undefined) validData.name = data.name;
-    if (data.description !== undefined) validData.description = data.description;
-    if (data.capacity !== undefined) validData.capacity = data.capacity;
-    if (data.duration !== undefined) validData.duration = data.duration;
-    if (data.isActive !== undefined) validData.isActive = data.isActive;
+  async updateClass(id: string, data: any) {
+    const allowed = ["name", "description", "capacity", "duration", "isActive"];
+
+    const filtered: any = {};
+    for (const key of allowed) {
+      if (data[key] !== undefined) filtered[key] = data[key];
+    }
 
     return prisma.class.update({
       where: { id },
-      data: validData,
-      include: {
-        sessions: {
-          include: {
-            teacher: true
-          }
-        },
-        enrollments: {
-          include: {
-            user: true
-          }
-        }
-      }
+      data: filtered,
     });
   }
 
   async deleteClass(id: string) {
-    return prisma.class.update({
-      where: { id },
-      data: { isActive: false }
-    });
+    return prisma.class.delete({ where: { id } });
   }
 }
