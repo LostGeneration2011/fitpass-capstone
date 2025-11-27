@@ -40,7 +40,7 @@ enum MessageRole {
 
 //
 // =============================
-// MODELS
+// USER
 // =============================
 //
 
@@ -65,13 +65,14 @@ model User {
   attendance    Attendance[]
   Enrollment    Enrollment[]
   Session       Session[]
+  schedules     Schedule[]       @relation("TeacherSchedules")
 
   @@map("users")
 }
 
 //
 // =============================
-// CLASS + SCHEDULE + SESSION
+// CLASS
 // =============================
 //
 
@@ -80,7 +81,7 @@ model Class {
   name        String
   description String?
   capacity    Int      @default(20)
-  duration    Int // minutes
+  duration    Int
   isActive    Boolean  @default(true)
   createdAt   DateTime @default(now())
   updatedAt   DateTime @updatedAt
@@ -88,23 +89,53 @@ model Class {
   // Relations
   sessions    ClassSession[]
   enrollments Enrollment[]
+  schedules   Schedule[]
 
   @@map("classes")
 }
+
+//
+// =============================
+// WEEKLY SCHEDULE (ADMIN SET)
+// =============================
+//
+
+model Schedule {
+  id        String   @id @default(cuid())
+  classId   String
+  teacherId String
+  dayOfWeek Int // 0–6
+  startTime String // "HH:MM"
+  endTime   String
+  room      String?
+  isActive  Boolean  @default(true)
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  class   Class @relation(fields: [classId], references: [id])
+  teacher User  @relation("TeacherSchedules", fields: [teacherId], references: [id])
+
+  @@map("schedules")
+}
+
+//
+// =============================
+// CLASS SESSION (REAL ATTENDABLE)
+// =============================
+//
 
 model ClassSession {
   id        String   @id @default(cuid())
   classId   String
   teacherId String
   date      DateTime
-  startTime String // "HH:MM"
+  startTime String
   endTime   String
-  qrCode    String? // dynamic QR (rotated per minute)
+  qrCode    String?
   isActive  Boolean  @default(true)
   createdAt DateTime @default(now())
   updatedAt DateTime @updatedAt
 
-  // Relations
   class        Class          @relation(fields: [classId], references: [id])
   teacher      User           @relation("TeacherSessions", fields: [teacherId], references: [id])
   attendance   Attendance[]
@@ -142,9 +173,9 @@ model Enrollment {
 model Package {
   id            String   @id @default(cuid())
   name          String
-  totalSessions Int // số buổi của gói
+  totalSessions Int
   price         Decimal  @db.Decimal(10, 2)
-  durationDays  Int // hạn dùng (VD: 30 ngày)
+  durationDays  Int
   isActive      Boolean  @default(true)
   createdAt     DateTime @default(now())
 
@@ -157,7 +188,7 @@ model StudentPackage {
   id          String   @id @default(cuid())
   userId      String
   packageId   String
-  remaining   Int // Buổi còn lại
+  remaining   Int
   activatedAt DateTime @default(now())
   expiresAt   DateTime
   isActive    Boolean  @default(true)

@@ -5,7 +5,7 @@ import helmet from 'helmet';
 import morgan from 'morgan';
 import { prisma } from './config/prisma';
 import { getConnectionInfo } from './config/database-config';
-
+import classRoutes from "./routes/class.routes";
 // Load environment variables
 dotenv.config();
 
@@ -22,6 +22,9 @@ app.use(cors());
 app.use(morgan('combined'));
 app.use(express.json());
 app.use(express.urlencoded({ extended: true }));
+
+
+app.use("/api/classes", classRoutes);
 
 // Routes
 app.use('/api/auth', authRoutes);
@@ -40,6 +43,7 @@ app.get('/', (req, res) => {
       apiHealth: '/api/health',
       auth: '/api/auth',
       users: '/api/users',
+      classes: '/api/classes',
       debug: '/api/debug'
     },
     documentation: 'https://github.com/LostGeneration2011/fitpass-capstone'
