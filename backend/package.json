@@ -1,24 +1,22 @@
 {
   "name": "fitpass-backend",
   "version": "1.0.0",
-  "description": "FitPass Backend API",
   "main": "dist/server.js",
+  "type": "commonjs",
   "scripts": {
     "dev": "ts-node-dev --respawn --transpile-only src/server.ts",
-    "build": "tsc && npx prisma generate",
+    "build": "tsc && prisma generate",
     "start": "node dist/server.js",
-    "vercel-build": "npx prisma generate",
+    "vercel-build": "npm run build",
     "db:switch": "node scripts/switch-db.js",
     "db:local": "npm run db:switch local && npm run prisma:push",
     "db:cloud": "npm run db:switch cloud && npm run prisma:push",
-    "prisma:generate": "npx prisma generate",
-    "prisma:push": "npx prisma db push",
-    "prisma:studio": "npx prisma studio",
-    "test:db": "npx ts-node test-db.ts"
+    "prisma:generate": "prisma generate",
+    "prisma:push": "prisma db push",
+    "prisma:studio": "prisma studio"
   },
   "dependencies": {
     "@prisma/client": "^5.19.1",
-    "@types/multer": "^2.0.0",
     "bcryptjs": "^2.4.3",
     "cloudinary": "^2.8.0",
     "cors": "^2.8.5",
@@ -26,35 +24,23 @@
     "express": "^4.21.2",
     "helmet": "^7.0.0",
     "jsonwebtoken": "^9.0.2",
-    "mongoose": "^7.5.0",
     "morgan": "^1.10.0",
     "multer": "^2.0.2",
-    "prisma": "^5.19.1",
-    "ts-node": "^10.9.1",
-    "typescript": "^5.9.3"
+    "prisma": "^5.19.1"
   },
   "devDependencies": {
     "@types/bcryptjs": "^2.4.2",
-    "@types/cors": "^2.8.13",
-    "@types/express": "^4.17.25",
-    "@types/jest": "^29.5.4",
+    "@types/cors": "^2.8.17",
+    "@types/express": "^4.17.21",
     "@types/jsonwebtoken": "^9.0.2",
-    "@types/morgan": "^1.9.4",
-    "@types/node": "^20.19.25",
-    "@vercel/node": "^5.5.12",
-    "jest": "^29.6.2",
-    "nodemon": "^3.0.1",
-    "ts-node": "^10.9.1",
+    "@types/morgan": "^1.9.7",
+    "@types/node": "^20.11.24",
+    "@vercel/node": "^4.0.0",
+    "ts-node": "^10.9.2",
     "ts-node-dev": "^2.0.0",
-    "typescript": "^5.9.3"
+    "typescript": "^5.3.3"
   },
-  "keywords": [
-    "fitpass",
-    "api",
-    "express",
-    "typescript"
-  ],
-  "author": "FitPass Team",
-  "license": "MIT",
-  "type": "commonjs"
+  "engines": {
+    "node": "18.x"
+  }
 }

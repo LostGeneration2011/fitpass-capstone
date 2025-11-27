@@ -1,25 +1,23 @@
-// Database configuration utility
-export function getDatabaseUrl(): string {
-  const dbEnv = process.env.DB_ENV || 'cloud';
-  
-  if (dbEnv === 'local') {
-    return process.env.DATABASE_URL_LOCAL || 'file:./dev.db';
-  }
-  
-  return process.env.DATABASE_URL || '';
+// src/config/database-config.ts
+
+export function getDatabaseUrl() {
+  return process.env.DATABASE_URL || "";
 }
 
-export function getDatabaseProvider(): 'sqlite' | 'postgresql' {
-  const dbEnv = process.env.DB_ENV || 'cloud';
-  return dbEnv === 'local' ? 'sqlite' : 'postgresql';
+export function getDatabaseProvider(): "sqlite" | "postgresql" {
+  // Nếu URL chứa 'file:' → local SQLite
+  if (process.env.DATABASE_URL?.startsWith("file:")) return "sqlite";
+  return "postgresql";
 }
 
 export function getConnectionInfo() {
-  const dbEnv = process.env.DB_ENV || 'cloud';
+  const url = getDatabaseUrl();
+  const isLocal = url.startsWith("file:");
+
   return {
-    environment: dbEnv,
+    environment: isLocal ? "local" : "cloud",
     provider: getDatabaseProvider(),
-    url: getDatabaseUrl(),
-    isLocal: dbEnv === 'local'
+    url,
+    isLocal
   };
 }

@@ -1,12 +1,16 @@
+import dotenv from 'dotenv';
 import app from './app';
 
-// For local development
-if (process.env.NODE_ENV !== 'production') {
+// Load environment variables
+dotenv.config();
+
+// Local development only
+if (process.env.NODE_ENV !== "production") {
   const PORT = process.env.PORT || 3001;
   app.listen(PORT, () => {
-    console.log(`Server is running on port ${PORT}`);
+    console.log(`Local server running on port ${PORT}`);
   });
 }
 
-// Export for Vercel
-export default app;
+// For Vercel
+module.exports = app;

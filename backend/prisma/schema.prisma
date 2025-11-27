@@ -7,120 +7,244 @@ datasource db {
   url      = env("DATABASE_URL")
 }
 
+//
+// =============================
+// ENUMS
+// =============================
+//
+
 enum UserRole {
   ADMIN
   TEACHER
   STUDENT
 }
 
-enum ClassType {
-  YOGA
-  PILATES
-  CARDIO
-  STRENGTH
-  ZUMBA
-  CROSSFIT
-  BOXING
-}
-
 enum AttendanceStatus {
   PRESENT
   ABSENT
   LATE
-  EXCUSED
 }
+
+enum NotificationType {
+  SYSTEM
+  SESSION
+  PACKAGE
+  CUSTOM
+}
+
+enum MessageRole {
+  ADMIN
+  TEACHER
+  STUDENT
+}
+
+//
+// =============================
+// MODELS
+// =============================
+//
 
 model User {
-  id          String   @id @default(cuid())
-  email       String   @unique
-  password    String
-  name        String
-  phone       String?
-  avatar      String?
-  role        UserRole @default(STUDENT)
-  isActive    Boolean  @default(true)
-  createdAt   DateTime @default(now())
-  updatedAt   DateTime @updatedAt
-  
-  // Relations
-  teachingClasses Class[] @relation("TeacherClasses")
-  enrollments     Enrollment[]
-  attendances     Attendance[]
-  
-  @@map("users")
-}
-
-model Class {
-  id          String    @id @default(cuid())
-  name        String
-  description String?
-  type        ClassType
-  capacity    Int       @default(20)
-  duration    Int       // in minutes
-  price       Decimal   @db.Decimal(10,2)
-  teacherId   String
-  isActive    Boolean   @default(true)
-  createdAt   DateTime  @default(now())
-  updatedAt   DateTime  @updatedAt
-  
-  // Relations
-  teacher     User         @relation("TeacherClasses", fields: [teacherId], references: [id])
-  schedules   Schedule[]
-  enrollments Enrollment[]
-  attendances Attendance[]
-  
-  @@map("classes")
-}
-
-model Schedule {
   id        String   @id @default(cuid())
-  classId   String
-  dayOfWeek Int      // 0 = Sunday, 1 = Monday, etc.
-  startTime String   // HH:MM format
-  endTime   String   // HH:MM format
-  room      String?
+  email     String   @unique
+  password  String
+  name      String
+  phone     String?
+  avatar    String?
+  role      UserRole @default(STUDENT)
   isActive  Boolean  @default(true)
   createdAt DateTime @default(now())
   updatedAt DateTime @updatedAt
-  
+
   // Relations
-  class Class @relation(fields: [classId], references: [id])
-  
-  @@map("schedules")
+  packages      StudentPackage[]
+  notifications Notification[]
+  messagesSent  Message[]        @relation("SentMessages")
+  messagesRecv  Message[]        @relation("ReceivedMessages")
+  classSessions ClassSession[]   @relation("TeacherSessions")
+  attendance    Attendance[]
+  Enrollment    Enrollment[]
+  Session       Session[]
+
+  @@map("users")
 }
 
-model Enrollment {
-  id         String   @id @default(cuid())
-  userId     String
-  classId    String
-  enrolledAt DateTime @default(now())
-  isActive   Boolean  @default(true)
-  
+//
+// =============================
+// CLASS + SCHEDULE + SESSION
+// =============================
+//
+
+model Class {
+  id          String   @id @default(cuid())
+  name        String
+  description String?
+  capacity    Int      @default(20)
+  duration    Int // minutes
+  isActive    Boolean  @default(true)
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+
   // Relations
+  sessions    ClassSession[]
+  enrollments Enrollment[]
+
+  @@map("classes")
+}
+
+model ClassSession {
+  id        String   @id @default(cuid())
+  classId   String
+  teacherId String
+  date      DateTime
+  startTime String // "HH:MM"
+  endTime   String
+  qrCode    String? // dynamic QR (rotated per minute)
+  isActive  Boolean  @default(true)
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  // Relations
+  class        Class          @relation(fields: [classId], references: [id])
+  teacher      User           @relation("TeacherSessions", fields: [teacherId], references: [id])
+  attendance   Attendance[]
+  PackageUsage PackageUsage[]
+
+  @@map("class_sessions")
+}
+
+//
+// =============================
+// ENROLLMENT
+// =============================
+//
+
+model Enrollment {
+  id        String   @id @default(cuid())
+  userId    String
+  classId   String
+  createdAt DateTime @default(now())
+  isActive  Boolean  @default(true)
+
   user  User  @relation(fields: [userId], references: [id])
   class Class @relation(fields: [classId], references: [id])
-  
+
   @@unique([userId, classId])
   @@map("enrollments")
 }
 
-model Attendance {
-  id        String          @id @default(cuid())
-  userId    String
-  classId   String
-  date      DateTime
-  status    AttendanceStatus
-  notes     String?
-  createdAt DateTime        @default(now())
-  updatedAt DateTime        @updatedAt
-  
-  // Relations
-  user  User  @relation(fields: [userId], references: [id])
-  class Class @relation(fields: [classId], references: [id])
-  
-  @@unique([userId, classId, date])
-  @@map("attendances")
+//
+// =============================
+// PACKAGE SYSTEM
+// =============================
+//
+
+model Package {
+  id            String   @id @default(cuid())
+  name          String
+  totalSessions Int // số buổi của gói
+  price         Decimal  @db.Decimal(10, 2)
+  durationDays  Int // hạn dùng (VD: 30 ngày)
+  isActive      Boolean  @default(true)
+  createdAt     DateTime @default(now())
+
+  purchases StudentPackage[]
+
+  @@map("packages")
 }
+
+model StudentPackage {
+  id          String   @id @default(cuid())
+  userId      String
+  packageId   String
+  remaining   Int // Buổi còn lại
+  activatedAt DateTime @default(now())
+  expiresAt   DateTime
+  isActive    Boolean  @default(true)
+
+  user    User           @relation(fields: [userId], references: [id])
+  package Package        @relation(fields: [packageId], references: [id])
+  usage   PackageUsage[]
+
+  @@map("student_packages")
+}
+
+model PackageUsage {
+  id               String   @id @default(cuid())
+  studentPackageId String
+  sessionId        String
+  createdAt        DateTime @default(now())
+
+  studentPackage StudentPackage @relation(fields: [studentPackageId], references: [id])
+  session        ClassSession   @relation(fields: [sessionId], references: [id])
+
+  @@map("package_usage")
+}
+
+//
+// =============================
+// ATTENDANCE
+// =============================
+//
+
+model Attendance {
+  id        String           @id @default(cuid())
+  userId    String
+  sessionId String
+  status    AttendanceStatus
+  createdAt DateTime         @default(now())
+
+  user    User         @relation(fields: [userId], references: [id])
+  session ClassSession @relation(fields: [sessionId], references: [id])
+
+  @@unique([userId, sessionId])
+  @@map("attendance")
+}
+
+//
+// =============================
+// REAL-TIME CHAT
+// =============================
+//
+
+model Message {
+  id         String      @id @default(cuid())
+  senderId   String
+  receiverId String
+  content    String
+  role       MessageRole
+  createdAt  DateTime    @default(now())
+
+  sender   User @relation("SentMessages", fields: [senderId], references: [id])
+  receiver User @relation("ReceivedMessages", fields: [receiverId], references: [id])
+
+  @@map("messages")
+}
+
+//
+// =============================
+// NOTIFICATIONS
+// =============================
+//
+
+model Notification {
+  id        String           @id @default(cuid())
+  userId    String
+  type      NotificationType
+  message   String
+  readAt    DateTime?
+  createdAt DateTime         @default(now())
+
+  user User @relation(fields: [userId], references: [id])
+
+  @@map("notifications")
+}
+
+//
+// =============================
+// LOGIN SESSIONS
+// =============================
+//
 
 model Session {
   id        String   @id @default(cuid())
@@ -128,6 +252,8 @@ model Session {
   token     String   @unique
   expiresAt DateTime
   createdAt DateTime @default(now())
-  
+
+  user User @relation(fields: [userId], references: [id])
+
   @@map("sessions")
 }
