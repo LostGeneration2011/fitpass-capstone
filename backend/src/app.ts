@@ -7,6 +7,7 @@ import classesRouter from './routes/classes.routes';
 import sessionsRouter from './routes/sessions.routes';
 import enrollmentsRouter from './routes/enrollments.routes';
 import attendanceRouter from './routes/attendance.routes';
+import qrRouter from './routes/qr.routes';
 import { authMiddleware } from './middlewares/auth';
 import { errorHandler } from './middlewares/errorHandler';
 
@@ -30,6 +31,7 @@ app.use('/api/classes', authMiddleware, classesRouter);
 app.use('/api/sessions', authMiddleware, sessionsRouter);
 app.use('/api/enrollments', authMiddleware, enrollmentsRouter);
 app.use('/api/attendance', authMiddleware, attendanceRouter);
+app.use('/api/qr', authMiddleware, qrRouter);
 
 // Error handler must be last
 app.use(errorHandler);
