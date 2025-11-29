@@ -1,11 +1,8 @@
 {
-  "name": "fitpass-monorepo",
+  "name": "fitpass-monorepo", 
   "version": "1.0.0",
   "description": "FitPass - Fitness Management Platform",
   "private": true,
-  "workspaces": [
-    "fitpass-admin"
-  ],
   "scripts": {
     "dev": "concurrently \"npm run dev:backend\" \"npm run dev:admin\" \"npm run dev:app\"",
     "dev:backend": "cd backend && npm run dev",

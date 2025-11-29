@@ -1,0 +1,535 @@
+{
+  "info": {
+    "name": "FitPass Session 8 - QR Attendance Module",
+    "description": "Test collection for QR attendance functionality",
+    "schema": "https://schema.getpostman.com/json/collection/v2.1.0/collection.json"
+  },
+  "auth": {
+    "type": "bearer",
+    "bearer": [
+      {
+        "key": "token",
+        "value": "{{auth_token}}",
+        "type": "string"
+      }
+    ]
+  },
+  "variable": [
+    {
+      "key": "baseUrl",
+      "value": "http://localhost:3001/api",
+      "type": "string"
+    },
+    {
+      "key": "auth_token",
+      "value": "",
+      "type": "string"
+    },
+    {
+      "key": "session_id",
+      "value": "",
+      "type": "string"
+    },
+    {
+      "key": "qr_token",
+      "value": "",
+      "type": "string"
+    }
+  ],
+  "item": [
+    {
+      "name": "Authentication",
+      "item": [
+        {
+          "name": "Login as Teacher",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "exec": [
+                  "if (pm.response.code === 200) {",
+                  "    const response = pm.response.json();",
+                  "    pm.collectionVariables.set('auth_token', response.token);",
+                  "    console.log('Teacher token set:', response.token);",
+                  "}"
+                ]
+              }
+            }
+          ],
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"email\": \"teacher@fitpass.com\",\n  \"password\": \"teacher123\"\n}"
+            },
+            "url": {
+              "raw": "{{baseUrl}}/auth/login",
+              "host": ["{{baseUrl}}"],
+              "path": ["auth", "login"]
+            }
+          }
+        },
+        {
+          "name": "Login as Student",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "exec": [
+                  "if (pm.response.code === 200) {",
+                  "    const response = pm.response.json();",
+                  "    pm.collectionVariables.set('student_token', response.token);",
+                  "    console.log('Student token set:', response.token);",
+                  "}"
+                ]
+              }
+            }
+          ],
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"email\": \"student@fitpass.com\",\n  \"password\": \"student123\"\n}"
+            },
+            "url": {
+              "raw": "{{baseUrl}}/auth/login",
+              "host": ["{{baseUrl}}"],
+              "path": ["auth", "login"]
+            }
+          }
+        }
+      ]
+    },
+    {
+      "name": "QR Token Generation",
+      "item": [
+        {
+          "name": "Start Session (Generate QR Token)",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "exec": [
+                  "pm.test('Status code is 200', function () {",
+                  "    pm.response.to.have.status(200);",
+                  "});",
+                  "",
+                  "pm.test('QR token is generated', function () {",
+                  "    const response = pm.response.json();",
+                  "    pm.expect(response.qr).to.be.a('string');",
+                  "    pm.expect(response.qr.split('.')).to.have.lengthOf(3); // JWT format",
+                  "    pm.collectionVariables.set('qr_token', response.qr);",
+                  "    console.log('QR Token:', response.qr);",
+                  "});",
+                  "",
+                  "pm.test('Session ID matches', function () {",
+                  "    const response = pm.response.json();",
+                  "    pm.expect(response.sessionId).to.equal(pm.collectionVariables.get('session_id'));",
+                  "});",
+                  "",
+                  "pm.test('Expiry is 5 minutes', function () {",
+                  "    const response = pm.response.json();",
+                  "    pm.expect(response.expiresIn).to.equal('5 minutes');",
+                  "});"
+                ]
+              }
+            }
+          ],
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{}"
+            },
+            "url": {
+              "raw": "{{baseUrl}}/qr/sessions/{{session_id}}/start",
+              "host": ["{{baseUrl}}"],
+              "path": ["qr", "sessions", "{{session_id}}", "start"]
+            }
+          }
+        },
+        {
+          "name": "Start Session - Unauthorized (Student)",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "exec": [
+                  "pm.test('Status code is 403 (Forbidden)', function () {",
+                  "    pm.response.to.have.status(403);",
+                  "});",
+                  "",
+                  "pm.test('Error message is appropriate', function () {",
+                  "    const response = pm.response.json();",
+                  "    pm.expect(response.error).to.include('authorized');",
+                  "});"
+                ]
+              }
+            }
+          ],
+          "request": {
+            "auth": {
+              "type": "bearer",
+              "bearer": [
+                {
+                  "key": "token",
+                  "value": "{{student_token}}",
+                  "type": "string"
+                }
+              ]
+            },
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{}"
+            },
+            "url": {
+              "raw": "{{baseUrl}}/qr/sessions/{{session_id}}/start",
+              "host": ["{{baseUrl}}"],
+              "path": ["qr", "sessions", "{{session_id}}", "start"]
+            }
+          }
+        }
+      ]
+    },
+    {
+      "name": "QR Check-in",
+      "item": [
+        {
+          "name": "QR Check-in (First Time)",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "exec": [
+                  "pm.test('Status code is 200', function () {",
+                  "    pm.response.to.have.status(200);",
+                  "});",
+                  "",
+                  "pm.test('Check-in successful message', function () {",
+                  "    const response = pm.response.json();",
+                  "    pm.expect(response.message).to.include('Check-in successful');",
+                  "});",
+                  "",
+                  "pm.test('Response contains required fields', function () {",
+                  "    const response = pm.response.json();",
+                  "    pm.expect(response).to.have.property('sessionId');",
+                  "    pm.expect(response).to.have.property('studentId');",
+                  "    pm.expect(response).to.have.property('checkedInAt');",
+                  "});",
+                  "",
+                  "pm.test('Session ID matches', function () {",
+                  "    const response = pm.response.json();",
+                  "    pm.expect(response.sessionId).to.equal(pm.collectionVariables.get('session_id'));",
+                  "});"
+                ]
+              }
+            }
+          ],
+          "request": {
+            "auth": {
+              "type": "bearer",
+              "bearer": [
+                {
+                  "key": "token",
+                  "value": "{{student_token}}",
+                  "type": "string"
+                }
+              ]
+            },
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"qrToken\": \"{{qr_token}}\"\n}"
+            },
+            "url": {
+              "raw": "{{baseUrl}}/attendance/qr-checkin",
+              "host": ["{{baseUrl}}"],
+              "path": ["attendance", "qr-checkin"]
+            }
+          }
+        },
+        {
+          "name": "QR Check-in (Second Time - Idempotent)",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "exec": [
+                  "pm.test('Status code is 200', function () {",
+                  "    pm.response.to.have.status(200);",
+                  "});",
+                  "",
+                  "pm.test('Check-in successful on second attempt', function () {",
+                  "    const response = pm.response.json();",
+                  "    pm.expect(response.message).to.include('Check-in successful');",
+                  "});"
+                ]
+              }
+            }
+          ],
+          "request": {
+            "auth": {
+              "type": "bearer",
+              "bearer": [
+                {
+                  "key": "token",
+                  "value": "{{student_token}}",
+                  "type": "string"
+                }
+              ]
+            },
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"qrToken\": \"{{qr_token}}\"\n}"
+            },
+            "url": {
+              "raw": "{{baseUrl}}/attendance/qr-checkin",
+              "host": ["{{baseUrl}}"],
+              "path": ["attendance", "qr-checkin"]
+            }
+          }
+        },
+        {
+          "name": "QR Check-in - Invalid Token",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "exec": [
+                  "pm.test('Status code is 400', function () {",
+                  "    pm.response.to.have.status(400);",
+                  "});",
+                  "",
+                  "pm.test('Error message for invalid token', function () {",
+                  "    const response = pm.response.json();",
+                  "    pm.expect(response.error).to.be.a('string');",
+                  "});"
+                ]
+              }
+            }
+          ],
+          "request": {
+            "auth": {
+              "type": "bearer",
+              "bearer": [
+                {
+                  "key": "token",
+                  "value": "{{student_token}}",
+                  "type": "string"
+                }
+              ]
+            },
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"qrToken\": \"invalid.token.here\"\n}"
+            },
+            "url": {
+              "raw": "{{baseUrl}}/attendance/qr-checkin",
+              "host": ["{{baseUrl}}"],
+              "path": ["attendance", "qr-checkin"]
+            }
+          }
+        },
+        {
+          "name": "QR Check-in - Missing Token",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "exec": [
+                  "pm.test('Status code is 400', function () {",
+                  "    pm.response.to.have.status(400);",
+                  "});",
+                  "",
+                  "pm.test('Error message for missing token', function () {",
+                  "    const response = pm.response.json();",
+                  "    pm.expect(response.error).to.include('required');",
+                  "});"
+                ]
+              }
+            }
+          ],
+          "request": {
+            "auth": {
+              "type": "bearer",
+              "bearer": [
+                {
+                  "key": "token",
+                  "value": "{{student_token}}",
+                  "type": "string"
+                }
+              ]
+            },
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{}"
+            },
+            "url": {
+              "raw": "{{baseUrl}}/attendance/qr-checkin",
+              "host": ["{{baseUrl}}"],
+              "path": ["attendance", "qr-checkin"]
+            }
+          }
+        }
+      ]
+    },
+    {
+      "name": "Integration Validation",
+      "item": [
+        {
+          "name": "Get Attendance (Verify QR Check-in)",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "exec": [
+                  "pm.test('Status code is 200', function () {",
+                  "    pm.response.to.have.status(200);",
+                  "});",
+                  "",
+                  "pm.test('Attendance records exist', function () {",
+                  "    const response = pm.response.json();",
+                  "    pm.expect(response).to.be.an('array');",
+                  "    pm.expect(response.length).to.be.greaterThan(0);",
+                  "});",
+                  "",
+                  "pm.test('QR check-in created attendance record', function () {",
+                  "    const response = pm.response.json();",
+                  "    const qrAttendance = response.find(record => record.status === 'PRESENT');",
+                  "    pm.expect(qrAttendance).to.exist;",
+                  "    pm.expect(qrAttendance.student).to.have.property('fullName');",
+                  "});"
+                ]
+              }
+            }
+          ],
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{baseUrl}}/attendance?sessionId={{session_id}}",
+              "host": ["{{baseUrl}}"],
+              "path": ["attendance"],
+              "query": [
+                {
+                  "key": "sessionId",
+                  "value": "{{session_id}}"
+                }
+              ]
+            }
+          }
+        },
+        {
+          "name": "Get Sessions (Verify Session 7 Still Works)",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "exec": [
+                  "pm.test('Status code is 200', function () {",
+                  "    pm.response.to.have.status(200);",
+                  "});",
+                  "",
+                  "pm.test('Sessions API still functional', function () {",
+                  "    const response = pm.response.json();",
+                  "    pm.expect(response).to.be.an('array');",
+                  "});"
+                ]
+              }
+            }
+          ],
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{baseUrl}}/sessions",
+              "host": ["{{baseUrl}}"],
+              "path": ["sessions"]
+            }
+          }
+        },
+        {
+          "name": "Get Enrollments (Verify Session 7 Still Works)",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "exec": [
+                  "pm.test('Status code is 200', function () {",
+                  "    pm.response.to.have.status(200);",
+                  "});",
+                  "",
+                  "pm.test('Enrollments API still functional', function () {",
+                  "    const response = pm.response.json();",
+                  "    pm.expect(response).to.be.an('array');",
+                  "});"
+                ]
+              }
+            }
+          ],
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{baseUrl}}/enrollments",
+              "host": ["{{baseUrl}}"],
+              "path": ["enrollments"]
+            }
+          }
+        }
+      ]
+    }
+  ]
+}
