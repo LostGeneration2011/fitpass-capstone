@@ -3,6 +3,15 @@ import { EnrollmentService } from "../services/enrollment.service";
 
 const enrollmentService = new EnrollmentService();
 
+export const getAllEnrollments = async (req: Request, res: Response) => {
+  try {
+    const enrollments = await enrollmentService.getAllEnrollments();
+    return res.json({ enrollments });
+  } catch (err: any) {
+    return res.status(400).json({ error: err.message });
+  }
+};
+
 export const createEnrollment = async (req: Request, res: Response) => {
   try {
     const { studentId, classId } = req.body;

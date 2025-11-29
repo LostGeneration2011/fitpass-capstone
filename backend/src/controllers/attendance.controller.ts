@@ -66,14 +66,30 @@ export const getAttendanceByStudent = async (req: Request, res: Response) => {
 
 export const updateAttendance = async (req: Request, res: Response) => {
   try {
-    const { sessionId, studentId, status } = req.body;
+    // Support both route formats: /attendance/:id and /attendance with body params
+    const attendanceId = req.params.id;
+    
+    if (attendanceId) {
+      // Format: PATCH /attendance/:id with { status }
+      const { status } = req.body;
+      
+      if (!status) {
+        return res.status(400).json({ error: "status is required" });
+      }
+      
+      const attendance = await attendanceService.updateAttendanceById(attendanceId, status as AttendanceStatus);
+      return res.json({ message: "Attendance updated successfully", attendance });
+    } else {
+      // Format: PATCH /attendance with { sessionId, studentId, status }
+      const { sessionId, studentId, status } = req.body;
 
-    if (!sessionId || !studentId || !status) {
-      return res.status(400).json({ error: "sessionId, studentId, and status are required" });
+      if (!sessionId || !studentId || !status) {
+        return res.status(400).json({ error: "sessionId, studentId, and status are required" });
+      }
+
+      const attendance = await attendanceService.updateAttendance(sessionId, studentId, status as AttendanceStatus);
+      return res.json({ message: "Attendance updated successfully", attendance });
     }
-
-    const attendance = await attendanceService.updateAttendance(sessionId, studentId, status as AttendanceStatus);
-    return res.json({ message: "Attendance updated successfully", attendance });
   } catch (err: any) {
     return res.status(400).json({ error: err.message });
   }

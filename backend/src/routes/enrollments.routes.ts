@@ -1,5 +1,6 @@
 import { Router } from 'express';
 import { 
+  getAllEnrollments,
   createEnrollment, 
   getEnrollmentsByClass, 
   getEnrollmentsByStudent, 
@@ -11,15 +12,14 @@ const router = Router();
 // POST /api/enrollments - Create enrollment
 router.post('/', createEnrollment);
 
-// GET /api/enrollments?classId=xxx - Get enrollments by class
-// GET /api/enrollments?studentId=xxx - Get enrollments by student
+// GET /api/enrollments - Get all enrollments (or filtered by classId/studentId)
 router.get('/', (req, res) => {
   if (req.query.classId) {
     return getEnrollmentsByClass(req, res);
   } else if (req.query.studentId) {
     return getEnrollmentsByStudent(req, res);
   } else {
-    return res.status(400).json({ error: "Either classId or studentId is required" });
+    return getAllEnrollments(req, res);
   }
 });
 

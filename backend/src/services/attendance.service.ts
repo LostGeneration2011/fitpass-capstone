@@ -124,4 +124,24 @@ export class AttendanceService {
       }
     });
   }
+
+  // Update by attendance ID
+  async updateAttendanceById(id: string, status: AttendanceStatus) {
+    const existing = await prisma.attendance.findUnique({
+      where: { id }
+    });
+
+    if (!existing) {
+      throw new Error("Attendance record not found");
+    }
+
+    return await prisma.attendance.update({
+      where: { id },
+      data: { status },
+      include: {
+        student: { select: { id: true, fullName: true, email: true } },
+        session: { select: { id: true, startTime: true, endTime: true } }
+      }
+    });
+  }
 }

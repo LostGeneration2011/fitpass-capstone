@@ -1,6 +1,29 @@
 import { prisma } from "../config/prisma";
 
 export class EnrollmentService {
+  async getAllEnrollments() {
+    return await prisma.enrollment.findMany({
+      include: {
+        student: {
+          select: {
+            id: true,
+            email: true,
+            fullName: true,
+            role: true
+          }
+        },
+        class: {
+          select: {
+            id: true,
+            name: true,
+            description: true
+          }
+        }
+      },
+      orderBy: { createdAt: 'desc' }
+    });
+  }
+
   // POST /api/enrollments - Student enroll in class
   async createEnrollment(studentId: string, classId: string) {
     // Check if class exists and has capacity

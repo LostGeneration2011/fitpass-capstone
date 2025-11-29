@@ -2,6 +2,8 @@ import bcrypt from "bcryptjs";
 import jwt from "jsonwebtoken";
 import { prisma } from "../config/prisma";
 
+const JWT_SECRET = process.env.JWT_SECRET || "fitpass_jwt_secret_key_2024";
+
 export class AuthService {
   async register(name: string, email: string, password: string) {
     const existing = await prisma.user.findUnique({ where: { email } });
@@ -31,7 +33,7 @@ export class AuthService {
         role: user.role,
         fullName: user.fullName
       },
-      process.env.JWT_SECRET as string,
+      JWT_SECRET,
       { expiresIn: "7d" }
     );
 

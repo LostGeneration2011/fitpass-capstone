@@ -12,6 +12,15 @@ const router = Router();
 // POST /api/attendance/check-in - Check in attendance
 router.post('/check-in', checkIn);
 
+// GET /api/attendance/session/:sessionId - Get attendance by session (alternative route)
+router.get('/session/:sessionId', (req, res) => {
+  req.query.sessionId = req.params.sessionId;
+  return getAttendanceBySession(req, res);
+});
+
+// PATCH /api/attendance/:id - Update attendance by id
+router.patch('/:id', updateAttendance);
+
 // GET /api/attendance?sessionId=xxx - Get attendance by session
 // GET /api/attendance?classId=xxx - Get attendance by class  
 // GET /api/attendance?studentId=xxx - Get attendance by student
