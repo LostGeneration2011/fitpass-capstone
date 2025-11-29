@@ -1,20 +1,32 @@
-import { Request, Response, NextFunction } from 'express';
+import { NextFunction, Request, Response } from 'express';
 import jwt from 'jsonwebtoken';
 
-export const authMiddleware = (req: any, res: Response, next: NextFunction) => {
-  const header = req.headers.authorization;
+const JWT_SECRET = process.env.JWT_SECRET || 'fitpass_jwt_secret_key_2024';
 
-  if (!header) {
-    return res.status(401).json({ error: 'No token provided' });
+export function authMiddleware(
+  req: Request,
+  res: Response,
+  next: NextFunction,
+) {
+  const authHeader = req.headers['authorization'];
+  const token = authHeader?.startsWith('Bearer ')
+    ? authHeader.slice(7)
+    : undefined;
+
+  if (!token) {
+    return res.status(401).json({ message: 'Unauthorized' });
   }
-
-  const token = header.replace('Bearer ', '').trim();
 
   try {
-    const decoded = jwt.verify(token, process.env.JWT_SECRET!);
-    req.user = decoded;
+    const payload = jwt.verify(token, JWT_SECRET) as any;
+    req.user = {
+      id: payload.id || payload.userId,
+      email: payload.email,
+      role: payload.role,
+      fullName: payload.fullName,
+    };
     return next();
-  } catch (error) {
-    return res.status(401).json({ error: 'Invalid token' });
+  } catch (err) {
+    return res.status(401).json({ message: 'Invalid or expired token' });
   }
-};
+}

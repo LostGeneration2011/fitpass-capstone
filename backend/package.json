@@ -13,7 +13,9 @@
     "db:cloud": "npm run db:switch cloud && npm run prisma:push",
     "prisma:generate": "prisma generate",
     "prisma:push": "prisma db push",
-    "prisma:studio": "prisma studio"
+    "prisma:studio": "prisma studio",
+    "seed": "ts-node prisma/seed.ts",
+    "db:seed": "npm run prisma:push && npm run seed"
   },
   "dependencies": {
     "@prisma/client": "^5.19.1",

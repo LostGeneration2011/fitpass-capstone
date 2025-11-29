@@ -19,28 +19,22 @@ enum UserRole {
   STUDENT
 }
 
+enum SessionStatus {
+  UPCOMING
+  ACTIVE
+  DONE
+  CANCELLED
+}
+
 enum AttendanceStatus {
   PRESENT
   ABSENT
   LATE
 }
 
-enum NotificationType {
-  SYSTEM
-  SESSION
-  PACKAGE
-  CUSTOM
-}
-
-enum MessageRole {
-  ADMIN
-  TEACHER
-  STUDENT
-}
-
 //
 // =============================
-// USER
+// MODELS
 // =============================
 //
 
@@ -48,243 +42,73 @@ model User {
   id        String   @id @default(cuid())
   email     String   @unique
   password  String
-  name      String
-  phone     String?
-  avatar    String?
+  fullName  String
   role      UserRole @default(STUDENT)
-  isActive  Boolean  @default(true)
+
+  classesTeaching Class[]      @relation("TeacherClasses")
+  enrollments     Enrollment[]
+  attendances     Attendance[]
+
   createdAt DateTime @default(now())
   updatedAt DateTime @updatedAt
-
-  // Relations
-  packages      StudentPackage[]
-  notifications Notification[]
-  messagesSent  Message[]        @relation("SentMessages")
-  messagesRecv  Message[]        @relation("ReceivedMessages")
-  classSessions ClassSession[]   @relation("TeacherSessions")
-  attendance    Attendance[]
-  Enrollment    Enrollment[]
-  Session       Session[]
-  schedules     Schedule[]       @relation("TeacherSchedules")
-
-  @@map("users")
 }
-
-//
-// =============================
-// CLASS
-// =============================
-//
 
 model Class {
   id          String   @id @default(cuid())
   name        String
   description String?
-  capacity    Int      @default(20)
-  duration    Int
-  isActive    Boolean  @default(true)
+  capacity    Int
+  duration    Int       // minutes
+
+  teacherId String?
+  teacher   User?    @relation("TeacherClasses", fields: [teacherId], references: [id])
+
+  sessions    Session[]
+  enrollments Enrollment[]
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+}
+
+model Session {
+  id        String         @id @default(cuid())
+  classId   String
+  class     Class          @relation(fields: [classId], references: [id])
+  startTime DateTime
+  endTime   DateTime
+  status    SessionStatus  @default(UPCOMING)
+
+  attendances Attendance[]
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+}
+
+model Enrollment {
+  id        String  @id @default(cuid())
+  studentId String
+  classId   String
+
+  student User  @relation(fields: [studentId], references: [id])
+  class   Class @relation(fields: [classId], references: [id])
+
+  createdAt DateTime @default(now())
+
+  @@unique([studentId, classId])
+}
+
+model Attendance {
+  id        String            @id @default(cuid())
+  sessionId String
+  studentId String
+  status    AttendanceStatus
+
+  session Session @relation(fields: [sessionId], references: [id])
+  student User    @relation(fields: [studentId], references: [id])
+
+  checkedInAt DateTime @default(now())
   createdAt   DateTime @default(now())
   updatedAt   DateTime @updatedAt
 
-  // Relations
-  sessions    ClassSession[]
-  enrollments Enrollment[]
-  schedules   Schedule[]
-
-  @@map("classes")
-}
-
-//
-// =============================
-// WEEKLY SCHEDULE (ADMIN SET)
-// =============================
-//
-
-model Schedule {
-  id        String   @id @default(cuid())
-  classId   String
-  teacherId String
-  dayOfWeek Int // 0–6
-  startTime String // "HH:MM"
-  endTime   String
-  room      String?
-  isActive  Boolean  @default(true)
-  createdAt DateTime @default(now())
-  updatedAt DateTime @updatedAt
-
-  class   Class @relation(fields: [classId], references: [id])
-  teacher User  @relation("TeacherSchedules", fields: [teacherId], references: [id])
-
-  @@map("schedules")
-}
-
-//
-// =============================
-// CLASS SESSION (REAL ATTENDABLE)
-// =============================
-//
-
-model ClassSession {
-  id        String   @id @default(cuid())
-  classId   String
-  teacherId String
-  date      DateTime
-  startTime String
-  endTime   String
-  qrCode    String?
-  isActive  Boolean  @default(true)
-  createdAt DateTime @default(now())
-  updatedAt DateTime @updatedAt
-
-  class        Class          @relation(fields: [classId], references: [id])
-  teacher      User           @relation("TeacherSessions", fields: [teacherId], references: [id])
-  attendance   Attendance[]
-  PackageUsage PackageUsage[]
-
-  @@map("class_sessions")
-}
-
-//
-// =============================
-// ENROLLMENT
-// =============================
-//
-
-model Enrollment {
-  id        String   @id @default(cuid())
-  userId    String
-  classId   String
-  createdAt DateTime @default(now())
-  isActive  Boolean  @default(true)
-
-  user  User  @relation(fields: [userId], references: [id])
-  class Class @relation(fields: [classId], references: [id])
-
-  @@unique([userId, classId])
-  @@map("enrollments")
-}
-
-//
-// =============================
-// PACKAGE SYSTEM
-// =============================
-//
-
-model Package {
-  id            String   @id @default(cuid())
-  name          String
-  totalSessions Int
-  price         Decimal  @db.Decimal(10, 2)
-  durationDays  Int
-  isActive      Boolean  @default(true)
-  createdAt     DateTime @default(now())
-
-  purchases StudentPackage[]
-
-  @@map("packages")
-}
-
-model StudentPackage {
-  id          String   @id @default(cuid())
-  userId      String
-  packageId   String
-  remaining   Int
-  activatedAt DateTime @default(now())
-  expiresAt   DateTime
-  isActive    Boolean  @default(true)
-
-  user    User           @relation(fields: [userId], references: [id])
-  package Package        @relation(fields: [packageId], references: [id])
-  usage   PackageUsage[]
-
-  @@map("student_packages")
-}
-
-model PackageUsage {
-  id               String   @id @default(cuid())
-  studentPackageId String
-  sessionId        String
-  createdAt        DateTime @default(now())
-
-  studentPackage StudentPackage @relation(fields: [studentPackageId], references: [id])
-  session        ClassSession   @relation(fields: [sessionId], references: [id])
-
-  @@map("package_usage")
-}
-
-//
-// =============================
-// ATTENDANCE
-// =============================
-//
-
-model Attendance {
-  id        String           @id @default(cuid())
-  userId    String
-  sessionId String
-  status    AttendanceStatus
-  createdAt DateTime         @default(now())
-
-  user    User         @relation(fields: [userId], references: [id])
-  session ClassSession @relation(fields: [sessionId], references: [id])
-
-  @@unique([userId, sessionId])
-  @@map("attendance")
-}
-
-//
-// =============================
-// REAL-TIME CHAT
-// =============================
-//
-
-model Message {
-  id         String      @id @default(cuid())
-  senderId   String
-  receiverId String
-  content    String
-  role       MessageRole
-  createdAt  DateTime    @default(now())
-
-  sender   User @relation("SentMessages", fields: [senderId], references: [id])
-  receiver User @relation("ReceivedMessages", fields: [receiverId], references: [id])
-
-  @@map("messages")
-}
-
-//
-// =============================
-// NOTIFICATIONS
-// =============================
-//
-
-model Notification {
-  id        String           @id @default(cuid())
-  userId    String
-  type      NotificationType
-  message   String
-  readAt    DateTime?
-  createdAt DateTime         @default(now())
-
-  user User @relation(fields: [userId], references: [id])
-
-  @@map("notifications")
-}
-
-//
-// =============================
-// LOGIN SESSIONS
-// =============================
-//
-
-model Session {
-  id        String   @id @default(cuid())
-  userId    String
-  token     String   @unique
-  expiresAt DateTime
-  createdAt DateTime @default(now())
-
-  user User @relation(fields: [userId], references: [id])
-
-  @@map("sessions")
+  @@unique([sessionId, studentId])
 }

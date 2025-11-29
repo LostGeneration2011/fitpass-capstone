@@ -5,10 +5,21 @@ const classService = new ClassService();
 
 export const createClass = async (req: Request, res: Response) => {
   try {
+    console.log('Creating class with data:', req.body);
+    
+    if (!req.body.name || !req.body.duration) {
+      return res.status(400).json({ 
+        error: "Missing required fields", 
+        required: ["name", "duration"],
+        received: req.body 
+      });
+    }
+
     const created = await classService.createClass(req.body);
     return res.status(201).json(created);
   } catch (err: any) {
-    return res.status(400).json({ error: err.message });
+    console.error('Error creating class:', err);
+    return res.status(400).json({ error: err.message, details: err });
   }
 };
 

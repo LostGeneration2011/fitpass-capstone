@@ -10,7 +10,7 @@ export class AuthService {
     const hashed = await bcrypt.hash(password, 10);
 
     const user = await prisma.user.create({
-      data: { name, email, password: hashed }
+      data: { fullName: name, email, password: hashed }
     });
 
     return user;
@@ -24,7 +24,13 @@ export class AuthService {
     if (!valid) throw new Error("Invalid email or password");
 
     const token = jwt.sign(
-      { userId: user.id },
+      { 
+        id: user.id,
+        userId: user.id, 
+        email: user.email,
+        role: user.role,
+        fullName: user.fullName
+      },
       process.env.JWT_SECRET as string,
       { expiresIn: "7d" }
     );
@@ -38,9 +44,7 @@ export class AuthService {
       select: {
         id: true,
         email: true,
-        name: true,
-        phone: true,
-        avatar: true,
+        fullName: true,
         role: true,
         createdAt: true
       }
