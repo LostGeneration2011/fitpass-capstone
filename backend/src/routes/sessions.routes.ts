@@ -3,7 +3,8 @@ import {
   createSession, 
   getSessions, 
   getSessionById, 
-  updateSessionStatus, 
+  updateSessionStatus,
+  updateSession,
   deleteSession 
 } from '../controllers/session.controller';
 
@@ -21,6 +22,9 @@ router.get('/:id', getSessionById);
 
 // PATCH /api/sessions/:id/status - Update session status
 router.patch('/:id/status', updateSessionStatus);
+
+// PATCH /api/sessions/:id - General update session
+router.patch('/:id', updateSession);
 
 // DELETE /api/sessions/:id - Delete session
 router.delete('/:id', deleteSession);

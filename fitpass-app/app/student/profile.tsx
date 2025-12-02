@@ -1,131 +1,101 @@
-import React from 'react';
+import React, { useEffect, useState } from 'react';
 import {
   View,
   Text,
   TouchableOpacity,
-  StyleSheet,
   SafeAreaView,
-  Image
+  Alert
 } from 'react-native';
+import { useNavigation } from '@react-navigation/native';
+import { getUser, removeToken, removeUser, User } from '../../lib/auth';
 
 export default function StudentProfileScreen() {
+  const [user, setUser] = useState<User | null>(null);
+  const navigation = useNavigation();
+
+  useEffect(() => {
+    const loadUser = async () => {
+      const currentUser = await getUser();
+      setUser(currentUser);
+    };
+    loadUser();
+  }, []);
+  
+  const handleSignOut = () => {
+    Alert.alert(
+      'Sign Out',
+      'Are you sure you want to sign out?',
+      [
+        { text: 'Cancel', style: 'cancel' },
+        {
+          text: 'Sign Out',
+          style: 'destructive',
+          onPress: async () => {
+            await removeToken();
+            await removeUser();
+            navigation.navigate('Login' as never);
+          },
+        },
+      ]
+    );
+  };
+
+  const getInitials = (name: string) => {
+    if (!name) return 'S';
+    const names = name.split(' ');
+    return names.length > 1 
+      ? `${names[0][0]}${names[names.length - 1][0]}` 
+      : names[0][0];
+  };
+
   return (
-    <SafeAreaView style={styles.container}>
-      <View style={styles.content}>
-        <Text style={styles.title}>Profile</Text>
-        
-        <View style={styles.profileSection}>
-          <Image 
-            style={styles.avatar}
-            source={{ uri: "https://via.placeholder.com/150" }}
-          />
-          
-          <View style={styles.userInfo}>
-            <Text style={styles.userName}>John Student</Text>
-            <Text style={styles.userEmail}>john.student@email.com</Text>
+    <SafeAreaView className="flex-1 bg-slate-950">
+      <View className="flex-1 px-4 pt-6">
+        {/* Profile Header */}
+        <View className="items-center mb-8">
+          <View className="w-24 h-24 bg-gradient-to-br from-blue-600 to-purple-600 rounded-full items-center justify-center mb-4"
+               style={{
+                 shadowColor: '#3b82f6',
+                 shadowOffset: { width: 0, height: 6 },
+                 shadowOpacity: 0.4,
+                 shadowRadius: 12,
+               }}>
+            <Text className="text-3xl font-bold text-white">
+              {getInitials(user?.fullName || 'Student')}
+            </Text>
           </View>
           
-          <View style={styles.divider} />
-          
-          <View style={styles.buttonContainer}>
-            <TouchableOpacity style={styles.button}>
-              <Text style={styles.buttonText}>Edit Profile</Text>
-            </TouchableOpacity>
-            <TouchableOpacity style={styles.button}>
-              <Text style={styles.buttonText}>Membership Details</Text>
-            </TouchableOpacity>
-            <TouchableOpacity style={styles.button}>
-              <Text style={styles.buttonText}>Payment Methods</Text>
-            </TouchableOpacity>
-            <TouchableOpacity style={styles.button}>
-              <Text style={styles.buttonText}>Settings</Text>
-            </TouchableOpacity>
-            <TouchableOpacity style={[styles.button, styles.signOutButton]}>
-              <Text style={[styles.buttonText, styles.signOutButtonText]}>Sign Out</Text>
-            </TouchableOpacity>
-          </View>
+          <Text className="text-2xl font-bold text-white mb-2">
+            {user?.fullName || 'Student User'}
+          </Text>
+          <Text className="text-slate-300">
+            {user?.email || 'student@email.com'}
+          </Text>
+          <View className="w-16 h-1 bg-blue-500 rounded-full mt-3" 
+               style={{
+                 shadowColor: '#3b82f6',
+                 shadowOffset: { width: 0, height: 2 },
+                 shadowOpacity: 0.5,
+                 shadowRadius: 4,
+               }} />
         </View>
+        
+        {/* Sign Out Button */}
+        <TouchableOpacity 
+          onPress={handleSignOut}
+          className="bg-red-600 rounded-xl py-4 items-center"
+          style={{
+            shadowColor: '#dc2626',
+            shadowOffset: { width: 0, height: 4 },
+            shadowOpacity: 0.3,
+            shadowRadius: 8,
+            borderWidth: 1,
+            borderColor: '#991b1b',
+          }}
+        >
+          <Text className="text-white font-semibold text-lg">Sign Out</Text>
+        </TouchableOpacity>
       </View>
     </SafeAreaView>
   );
 }
-
-const styles = StyleSheet.create({
-  container: {
-    flex: 1,
-    backgroundColor: '#f5f5f5',
-  },
-  content: {
-    flex: 1,
-    padding: 16,
-  },
-  title: {
-    fontSize: 28,
-    fontWeight: 'bold',
-    color: '#333',
-    marginBottom: 20,
-  },
-  profileSection: {
-    alignItems: 'center',
-    backgroundColor: 'white',
-    borderRadius: 8,
-    padding: 20,
-    shadowColor: '#000',
-    shadowOffset: {
-      width: 0,
-      height: 2,
-    },
-    shadowOpacity: 0.1,
-    shadowRadius: 3.84,
-    elevation: 5,
-  },
-  avatar: {
-    width: 100,
-    height: 100,
-    borderRadius: 50,
-    marginBottom: 16,
-  },
-  userInfo: {
-    alignItems: 'center',
-    marginBottom: 20,
-  },
-  userName: {
-    fontSize: 20,
-    fontWeight: '600',
-    color: '#333',
-    marginBottom: 4,
-  },
-  userEmail: {
-    fontSize: 16,
-    color: '#666',
-  },
-  divider: {
-    width: '100%',
-    height: 1,
-    backgroundColor: '#e5e5e5',
-    marginVertical: 20,
-  },
-  buttonContainer: {
-    width: '100%',
-    gap: 12,
-  },
-  button: {
-    borderWidth: 1,
-    borderColor: '#3b82f6',
-    borderRadius: 8,
-    paddingVertical: 12,
-    paddingHorizontal: 16,
-    alignItems: 'center',
-  },
-  buttonText: {
-    color: '#3b82f6',
-    fontSize: 16,
-    fontWeight: '500',
-  },
-  signOutButton: {
-    borderColor: '#ef4444',
-  },
-  signOutButtonText: {
-    color: '#ef4444',
-  },
-});

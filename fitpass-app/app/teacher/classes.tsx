@@ -1,176 +1,118 @@
-import React from 'react';
-import {
-  View,
-  Text,
-  ScrollView,
-  TouchableOpacity,
-  StyleSheet,
-  SafeAreaView
-} from 'react-native';
+import { useEffect, useState } from "react";
+import { View, Text, ScrollView, ActivityIndicator, TouchableOpacity } from "react-native";
+import { useNavigation } from "@react-navigation/native";
+import { getUser } from "../../lib/auth";
+import { classesAPI } from "../../lib/api";
 
-export default function TeacherClassesScreen() {
+export default function TeacherClasses() {
+  const navigation = useNavigation();
+  const [classes, setClasses] = useState([]);
+  const [loading, setLoading] = useState(true);
+
+  useEffect(() => {
+    loadData();
+  }, []);
+
+  const loadData = async () => {
+    try {
+      setLoading(true);
+      const user = await getUser();
+
+      if (!user || user.role !== "TEACHER") {
+        console.log("❌ Invalid user");
+        setClasses([]);
+        return;
+      }
+
+      const allClasses = await classesAPI.getAll();
+      const teacherClasses = Array.isArray(allClasses) 
+        ? allClasses.filter((c: any) => c.teacherId === user.id)
+        : [];
+
+      console.log("📚 FINAL CLASS RENDER LIST:", teacherClasses);
+      setClasses(teacherClasses);
+    } catch (err) {
+      console.log("❌ Error loading classes:", err);
+      setClasses([]);
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  if (loading) {
+    return (
+      <View className="flex-1 items-center justify-center bg-slate-950">
+        <ActivityIndicator size="large" color="#3b82f6" />
+        <Text className="text-slate-300 mt-4">Loading classes...</Text>
+      </View>
+    );
+  }
+
   return (
-    <SafeAreaView style={styles.container}>
-      <View style={styles.content}>
-        <View style={styles.header}>
-          <Text style={styles.title}>My Classes</Text>
-          <TouchableOpacity style={styles.addButton}>
-            <Text style={styles.addButtonText}>+ New Class</Text>
-          </TouchableOpacity>
+    <ScrollView className="flex-1 bg-slate-950 p-4">
+      <Text className="text-white text-xl font-bold mb-4">My Classes</Text>
+
+      {classes.length === 0 && (
+        <View className="bg-slate-800 p-6 rounded-xl border border-slate-700"
+             style={{
+               shadowColor: '#000',
+               shadowOffset: { width: 0, height: 4 },
+               shadowOpacity: 0.3,
+               shadowRadius: 8,
+             }}>
+          <Text className="text-slate-300 text-center">📚 You have no classes assigned.</Text>
+          <Text className="text-slate-300 text-center mt-2">Contact admin to get classes.</Text>
         </View>
-        
-        <ScrollView style={styles.scrollView} showsVerticalScrollIndicator={false}>
-          <View style={styles.cardsContainer}>
-            <View style={styles.card}>
-              <View style={styles.cardHeader}>
-                <Text style={styles.cardTitle}>Yoga Fundamentals</Text>
-                <View style={styles.badgeActive}>
-                  <Text style={styles.badgeText}>Active</Text>
-                </View>
-              </View>
-              <Text style={styles.cardSubtitle}>
-                Monday, Wednesday, Friday - 9:00 AM
-              </Text>
-              <Text style={styles.cardSubtitle}>
-                Students: 12/15
-              </Text>
-              <View style={styles.cardActions}>
-                <TouchableOpacity style={styles.actionButton}>
-                  <Text style={styles.actionButtonText}>Edit</Text>
-                </TouchableOpacity>
-                <TouchableOpacity style={styles.actionButton}>
-                  <Text style={styles.actionButtonText}>View Students</Text>
-                </TouchableOpacity>
-              </View>
+      )}
+
+      {classes.map((c: any) => (
+        <View 
+          key={c.id}
+          className="bg-slate-800 p-4 mb-4 rounded-xl border border-slate-700"
+          style={{
+            shadowColor: '#000',
+            shadowOffset: { width: 0, height: 4 },
+            shadowOpacity: 0.3,
+            shadowRadius: 8,
+          }}
+        >
+          <Text className="text-white text-lg font-semibold">{c.name}</Text>
+          <Text className="text-slate-300 mt-1">{c.description}</Text>
+
+          <View className="flex-row justify-between mt-3">
+            <View>
+              <Text className="text-slate-300 text-sm">👥 Capacity: {c.capacity}</Text>
+              <Text className="text-slate-300 text-sm">⏱️ Duration: {c.duration} mins</Text>
             </View>
-            
-            <View style={styles.card}>
-              <View style={styles.cardHeader}>
-                <Text style={styles.cardTitle}>Advanced HIIT</Text>
-                <View style={styles.badgeDraft}>
-                  <Text style={styles.badgeText}>Draft</Text>
-                </View>
-              </View>
-              <Text style={styles.cardSubtitle}>
-                Tuesday, Thursday - 6:00 PM
-              </Text>
-              <Text style={styles.cardSubtitle}>
-                Students: 0/20
-              </Text>
-              <View style={styles.cardActions}>
-                <TouchableOpacity style={styles.actionButton}>
-                  <Text style={styles.actionButtonText}>Edit</Text>
-                </TouchableOpacity>
-                <TouchableOpacity style={styles.actionButton}>
-                  <Text style={styles.actionButtonText}>Publish</Text>
-                </TouchableOpacity>
-              </View>
+            <View>
+              <Text className="text-slate-300 text-sm">📅 Created: {new Date(c.createdAt).toLocaleDateString()}</Text>
+              <Text className="text-green-400 text-sm font-medium">✅ Students: {c._count?.enrollments ?? 0}</Text>
             </View>
           </View>
-        </ScrollView>
-      </View>
-    </SafeAreaView>
+
+          <TouchableOpacity 
+            className="bg-blue-600 p-3 rounded-lg mt-3"
+            style={{
+              shadowColor: '#3b82f6',
+              shadowOffset: { width: 0, height: 3 },
+              shadowOpacity: 0.3,
+              shadowRadius: 6,
+            }}
+            onPress={() => {
+              try {
+                (navigation as any).navigate('Sessions', {
+                  classId: c.id,
+                  className: c.name,
+                });
+              } catch (error) {
+                console.log("Navigation error:", error);
+              }
+            }}
+          >
+            <Text className="text-white text-center font-semibold">View Sessions</Text>
+          </TouchableOpacity>
+        </View>
+      ))}
+    </ScrollView>
   );
 }
-
-const styles = StyleSheet.create({
-  container: {
-    flex: 1,
-    backgroundColor: '#f5f5f5',
-  },
-  content: {
-    flex: 1,
-    padding: 16,
-  },
-  header: {
-    flexDirection: 'row',
-    justifyContent: 'space-between',
-    alignItems: 'center',
-    marginBottom: 20,
-  },
-  title: {
-    fontSize: 28,
-    fontWeight: 'bold',
-    color: '#333',
-  },
-  addButton: {
-    backgroundColor: '#3b82f6',
-    paddingHorizontal: 12,
-    paddingVertical: 8,
-    borderRadius: 6,
-  },
-  addButtonText: {
-    color: 'white',
-    fontSize: 14,
-    fontWeight: '500',
-  },
-  scrollView: {
-    flex: 1,
-  },
-  cardsContainer: {
-    gap: 16,
-  },
-  card: {
-    backgroundColor: 'white',
-    borderRadius: 8,
-    padding: 16,
-    shadowColor: '#000',
-    shadowOffset: {
-      width: 0,
-      height: 2,
-    },
-    shadowOpacity: 0.1,
-    shadowRadius: 3.84,
-    elevation: 5,
-  },
-  cardHeader: {
-    flexDirection: 'row',
-    justifyContent: 'space-between',
-    alignItems: 'center',
-    marginBottom: 8,
-  },
-  cardTitle: {
-    fontSize: 18,
-    fontWeight: '600',
-    color: '#333',
-  },
-  cardSubtitle: {
-    fontSize: 14,
-    color: '#666',
-    marginBottom: 4,
-  },
-  cardActions: {
-    flexDirection: 'row',
-    gap: 8,
-    marginTop: 12,
-  },
-  actionButton: {
-    borderWidth: 1,
-    borderColor: '#3b82f6',
-    paddingHorizontal: 12,
-    paddingVertical: 6,
-    borderRadius: 4,
-  },
-  actionButtonText: {
-    color: '#3b82f6',
-    fontSize: 12,
-    fontWeight: '500',
-  },
-  badgeActive: {
-    backgroundColor: '#10b981',
-    paddingHorizontal: 8,
-    paddingVertical: 4,
-    borderRadius: 12,
-  },
-  badgeDraft: {
-    backgroundColor: '#f59e0b',
-    paddingHorizontal: 8,
-    paddingVertical: 4,
-    borderRadius: 12,
-  },
-  badgeText: {
-    color: 'white',
-    fontSize: 12,
-    fontWeight: '500',
-  },
-});

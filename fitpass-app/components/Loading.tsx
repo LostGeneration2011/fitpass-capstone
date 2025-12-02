@@ -1,11 +1,10 @@
 import React from 'react';
 import {
-  Center,
-  Spinner,
+  View,
+  ActivityIndicator,
   Text,
-  VStack,
-  useColorModeValue
-} from 'native-base';
+  StyleSheet,
+} from 'react-native';
 
 interface LoadingProps {
   message?: string;
@@ -13,11 +12,23 @@ interface LoadingProps {
 
 export default function Loading({ message = 'Loading...' }: LoadingProps) {
   return (
-    <Center flex={1} bg={useColorModeValue('white', 'gray.900')}>
-      <VStack space={4} alignItems="center">
-        <Spinner size="lg" color="blue.500" />
-        <Text color="gray.500">{message}</Text>
-      </VStack>
-    </Center>
+    <View style={styles.container}>
+      <ActivityIndicator size="large" color="#3b82f6" />
+      <Text style={styles.message}>{message}</Text>
+    </View>
   );
 }
+
+const styles = StyleSheet.create({
+  container: {
+    flex: 1,
+    justifyContent: 'center',
+    alignItems: 'center',
+    backgroundColor: '#ffffff',
+    gap: 16,
+  },
+  message: {
+    color: '#6b7280',
+    fontSize: 16,
+  },
+});

@@ -1,165 +1,209 @@
 import React, { useState } from 'react';
-import {
-  View,
-  Text,
-  TextInput,
-  TouchableOpacity,
-  StyleSheet,
-  SafeAreaView
+import { 
+  Platform, 
+  Alert, 
+  View, 
+  Text, 
+  TextInput, 
+  TouchableOpacity, 
+  SafeAreaView,
+  ActivityIndicator 
 } from 'react-native';
 import { useNavigation } from '@react-navigation/native';
-
-const styles = StyleSheet.create({
-  container: {
-    flex: 1,
-    backgroundColor: '#f5f5f5',
-  },
-  content: {
-    flex: 1,
-    justifyContent: 'center',
-    alignItems: 'center',
-    padding: 20,
-  },
-  form: {
-    width: '100%',
-    maxWidth: 400,
-    backgroundColor: 'white',
-    padding: 30,
-    borderRadius: 10,
-    shadowColor: '#000',
-    shadowOffset: {
-      width: 0,
-      height: 2,
-    },
-    shadowOpacity: 0.25,
-    shadowRadius: 3.84,
-    elevation: 5,
-  },
-  title: {
-    fontSize: 24,
-    fontWeight: '600',
-    textAlign: 'center',
-    marginBottom: 30,
-    color: '#333',
-  },
-  userTypeContainer: {
-    flexDirection: 'row',
-    justifyContent: 'center',
-    marginBottom: 20,
-    gap: 10,
-  },
-  userTypeButton: {
-    paddingHorizontal: 20,
-    paddingVertical: 10,
-    borderRadius: 8,
-    backgroundColor: '#f0f0f0',
-  },
-  userTypeButtonActive: {
-    backgroundColor: '#3b82f6',
-  },
-  userTypeText: {
-    color: '#333',
-    fontWeight: '500',
-  },
-  userTypeTextActive: {
-    color: 'white',
-  },
-  input: {
-    borderWidth: 1,
-    borderColor: '#ddd',
-    borderRadius: 8,
-    padding: 15,
-    marginBottom: 15,
-    fontSize: 16,
-    backgroundColor: 'white',
-  },
-  button: {
-    backgroundColor: '#3b82f6',
-    padding: 15,
-    borderRadius: 8,
-    alignItems: 'center',
-    marginTop: 10,
-  },
-  buttonText: {
-    color: 'white',
-    fontSize: 16,
-    fontWeight: '600',
-  },
-});
+import { authAPI } from '../lib/api';
+import { saveToken, saveUser, User } from '../lib/auth';
+import { WebLogin } from '../components/WebLogin';
+import { useWebSocket } from '../lib/WebSocketContext';
 
 export default function LoginScreen() {
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
-  const [userType, setUserType] = useState<'student' | 'teacher'>('student');
+  const [loading, setLoading] = useState(false);
   const navigation = useNavigation();
+  const { reconnect } = useWebSocket();
 
-  const handleLogin = () => {
-    // Login logic here
-    if (userType === 'student') {
-      navigation.navigate('Student' as never);
-    } else {
-      navigation.navigate('Teacher' as never);
+  // Use web-specific component for web platform
+  if (Platform.OS === 'web') {
+    return <WebLogin />;
+  }
+
+  const handleLogin = async () => {
+    if (!email || !password) {
+      Alert.alert('Error', 'Please enter email and password');
+      return;
+    }
+
+    setLoading(true);
+    try {
+      const response = await authAPI.login(email, password);
+      console.log('Login response:', response); // Debug log
+      
+      // Extract token and user from response
+      const { token, user } = response;
+
+      if (!token || !user) {
+        throw new Error('Invalid response format');
+      }
+
+      // Save token and user to storage
+      console.log('Saving token and user to storage...');
+      await saveToken(token);
+      await saveUser(user);
+      console.log('Token and user saved successfully');
+
+      // Connect WebSocket with new token
+      console.log('Connecting WebSocket...');
+      reconnect();
+
+      // Validate user role and navigate accordingly
+      if (user.role === 'TEACHER') {
+        // Navigate to teacher dashboard
+        navigation.navigate('Teacher' as never);
+      } else if (user.role === 'STUDENT') {
+        // Navigate to student dashboard
+        navigation.navigate('Student' as never);
+      } else {
+        Alert.alert('Error', 'Invalid user role. Please contact support.');
+        setLoading(false);
+        return;
+      }
+    } catch (error: any) {
+      console.error('Login error:', error);
+      Alert.alert('Login Failed', error.message || 'Invalid email or password');
+    } finally {
+      setLoading(false);
     }
   };
 
   return (
-    <SafeAreaView style={styles.container}>
-      <View style={styles.content}>
-        <View style={styles.form}>
-          <Text style={styles.title}>
+    <SafeAreaView className="flex-1 bg-slate-950">
+      <View className="flex-1 justify-center items-center px-6">
+        {/* Header Section */}
+        <View className="items-center mb-10">
+          <View 
+            className="w-24 h-24 rounded-full items-center justify-center mb-6"
+            style={{
+              backgroundColor: '#3B82F6',
+              shadowColor: '#3B82F6',
+              shadowOffset: { width: 0, height: 6 },
+              shadowOpacity: 0.4,
+              shadowRadius: 12,
+              elevation: 12,
+            }}
+          >
+            <Text className="text-white text-3xl font-bold">💪</Text>
+          </View>
+          <Text className="text-4xl font-bold text-white mb-3">
             Welcome to FitPass
           </Text>
-          
-          <View style={styles.userTypeContainer}>
+          <Text className="text-lg text-slate-300 text-center leading-6">
+            Your fitness journey starts here
+          </Text>
+        </View>
+
+        {/* Login Form */}
+        <View className="w-full max-w-sm">
+          <View className="bg-slate-800 rounded-3xl p-8"
+               style={{
+                 shadowColor: '#000',
+                 shadowOffset: { width: 0, height: 8 },
+                 shadowOpacity: 0.3,
+                 shadowRadius: 16,
+                 borderWidth: 1,
+                 borderColor: '#475569',
+               }}>
+            <Text className="text-2xl font-bold text-white text-center mb-8">
+              Sign In
+            </Text>
+
+            {/* Email Input */}
+            <View className="mb-5">
+              <Text className="text-slate-300 font-semibold mb-2">Email</Text>
+              <TextInput
+                className={`w-full px-4 py-4 bg-slate-700 rounded-xl border border-slate-600 text-white font-medium ${
+                  loading ? 'opacity-50' : ''
+                }`}
+                value={email}
+                onChangeText={setEmail}
+                placeholder="Enter your email"
+                placeholderTextColor="#94a3b8"
+                keyboardType="email-address"
+                autoCapitalize="none"
+                autoComplete="email"
+                editable={!loading}
+              />
+            </View>
+
+            {/* Password Input */}
+            <View className="mb-8">
+              <Text className="text-slate-300 font-semibold mb-2">Password</Text>
+              <TextInput
+                className={`w-full px-4 py-4 bg-slate-700 rounded-xl border border-slate-600 text-white font-medium ${
+                  loading ? 'opacity-50' : ''
+                }`}
+                secureTextEntry
+                value={password}
+                onChangeText={setPassword}
+                placeholder="Enter your password"
+                placeholderTextColor="#94a3b8"
+                autoComplete="password"
+                editable={!loading}
+              />
+            </View>
+
+            {/* Login Button */}
             <TouchableOpacity
-              onPress={() => setUserType('student')}
-              style={[
-                styles.userTypeButton,
-                userType === 'student' && styles.userTypeButtonActive
-              ]}
+              className={`w-full py-4 rounded-xl items-center justify-center mb-6 ${
+                loading ? 'bg-slate-600' : 'bg-blue-600'
+              }`}
+              style={!loading ? {
+                backgroundColor: '#3B82F6',
+                shadowColor: '#3B82F6',
+                shadowOffset: { width: 0, height: 4 },
+                shadowOpacity: 0.3,
+                shadowRadius: 8,
+                elevation: 8,
+              } : {}}
+              onPress={handleLogin}
+              disabled={loading}
             >
-              <Text style={[
-                styles.userTypeText,
-                userType === 'student' && styles.userTypeTextActive
-              ]}>
-                Student
-              </Text>
+              {loading ? (
+                <ActivityIndicator color="#fff" size="small" />
+              ) : (
+                <Text className="text-white text-lg font-bold">
+                  Sign In
+                </Text>
+              )}
             </TouchableOpacity>
-            <TouchableOpacity
-              onPress={() => setUserType('teacher')}
-              style={[
-                styles.userTypeButton,
-                userType === 'teacher' && styles.userTypeButtonActive
-              ]}
-            >
-              <Text style={[
-                styles.userTypeText,
-                userType === 'teacher' && styles.userTypeTextActive
-              ]}>
-                Teacher
+            
+            {/* Demo Accounts */}
+            <View className="bg-slate-700 rounded-2xl p-4"
+                 style={{
+                   borderWidth: 1,
+                   borderColor: '#475569',
+                 }}>
+              <Text className="text-blue-400 text-sm text-center font-bold mb-3">
+                🎯 Demo Accounts
               </Text>
-            </TouchableOpacity>
+              <View className="space-y-2">
+                <View className="bg-slate-600 rounded-lg p-3">
+                  <Text className="text-blue-400 text-xs font-bold">👨‍🏫 Teacher:</Text>
+                  <Text className="text-slate-300 text-xs">teacher1@fitpass.com / password123</Text>
+                </View>
+                <View className="bg-slate-600 rounded-lg p-3">
+                  <Text className="text-purple-400 text-xs font-bold">👨‍🎓 Student:</Text>
+                  <Text className="text-slate-300 text-xs">student1@fitpass.com / password123</Text>
+                </View>
+              </View>
+            </View>
           </View>
 
-          <TextInput
-            style={styles.input}
-            placeholder="Email"
-            value={email}
-            onChangeText={setEmail}
-            keyboardType="email-address"
-            placeholderTextColor="#666"
-          />
-          <TextInput
-            style={styles.input}
-            placeholder="Password"
-            value={password}
-            onChangeText={setPassword}
-            secureTextEntry
-            placeholderTextColor="#666"
-          />
-          <TouchableOpacity style={styles.button} onPress={handleLogin}>
-            <Text style={styles.buttonText}>Sign in</Text>
-          </TouchableOpacity>
+          {/* Footer */}
+          <View className="mt-8 items-center">
+            <Text className="text-slate-500 text-sm">
+              Powered by FitPass Technology
+            </Text>
+          </View>
         </View>
       </View>
     </SafeAreaView>

@@ -13,10 +13,14 @@ export class EnrollmentService {
           }
         },
         class: {
-          select: {
-            id: true,
-            name: true,
-            description: true
+          include: {
+            teacher: {
+              select: {
+                id: true,
+                email: true,
+                fullName: true
+              }
+            }
           }
         }
       },

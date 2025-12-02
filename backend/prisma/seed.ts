@@ -100,6 +100,17 @@ async function main() {
 
   // Create sessions
   const now = new Date();
+  
+  // Session today for teacher1 (ACTIVE)
+  const sessionToday = await prisma.session.create({
+    data: {
+      classId: class1.id,
+      startTime: new Date(now.getTime() - 30 * 60 * 1000), // 30 min ago
+      endTime: new Date(now.getTime() + 60 * 60 * 1000), // 1 hour from now
+      status: 'ACTIVE',
+    },
+  });
+
   const session1 = await prisma.session.create({
     data: {
       classId: class1.id,

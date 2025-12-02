@@ -1,0 +1,147 @@
+/* Web-specific styles for NativeWind compatibility */
+html, body {
+  margin: 0;
+  padding: 0;
+  font-family: system-ui, -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+  background-color: #0f172a !important;
+  width: 100%;
+  height: 100%;
+  overflow-x: hidden;
+}
+
+/* Target React Native Web root elements */
+#root, 
+#root > div,
+[data-reactroot],
+[data-reactroot] > div {
+  background-color: #0f172a !important;
+  width: 100% !important;
+  height: 100% !important;
+  min-height: 100vh !important;
+}
+
+/* Force all React Native Web View components to be dark */
+div[style*="flex"] {
+  background-color: transparent !important;
+}
+
+/* Specific targeting for login screen container */
+div[style*="flex: 1"] {
+  background-color: #0f172a !important;
+  min-height: 100vh !important;
+}
+
+/* Remove white backgrounds from all nested components */
+div[style*="background-color: rgba(0, 0, 0, 0)"],
+div[style*="background-color: transparent"],
+div[style*="background-color: white"],
+div[style*="background-color: #ffffff"],
+div[style*="background-color: rgb(255, 255, 255)"] {
+  background-color: #0f172a !important;
+}
+
+/* Responsive design for web - mobile-like frame */
+@media (min-width: 768px) {
+  #root {
+    max-width: 450px;
+    margin: 0 auto;
+    height: 100vh;
+    border-left: 1px solid #334155;
+    border-right: 1px solid #334155;
+    background-color: #0f172a !important;
+  }
+  
+  body {
+    background-color: #1e293b !important;
+  }
+}
+
+/* Ensure all text colors work on web */
+[style*="color: rgb(255, 255, 255)"],
+.text-white {
+  color: white !important;
+}
+
+[style*="color: rgb(203, 213, 225)"],
+.text-slate-300 {
+  color: #cbd5e1 !important;
+}
+
+[style*="color: rgb(148, 163, 184)"],
+.text-slate-400 {
+  color: #94a3b8 !important;
+}
+
+/* Background colors for React Native Web */
+[style*="background-color: rgb(15, 23, 42)"],
+.bg-slate-900 {
+  background-color: #0f172a !important;
+}
+
+[style*="background-color: rgb(30, 41, 59)"],
+.bg-slate-800 {
+  background-color: #1e293b !important;
+}
+
+[style*="background-color: rgb(51, 65, 85)"],
+.bg-slate-700 {
+  background-color: #334155 !important;
+}
+
+/* Button colors */
+[style*="background-color: rgb(37, 99, 235)"],
+.bg-blue-600 {
+  background-color: #2563eb !important;
+}
+
+[style*="background-color: rgb(22, 163, 74)"],
+.bg-green-600 {
+  background-color: #16a34a !important;
+}
+
+/* Input styling for web */
+input {
+  background-color: #334155 !important;
+  color: white !important;
+  border: 1px solid #475569 !important;
+  border-radius: 8px !important;
+  padding: 12px !important;
+}
+
+input::placeholder {
+  color: #94a3b8 !important;
+}
+
+input:focus {
+  outline: none !important;
+  border-color: #2563eb !important;
+  box-shadow: 0 0 0 2px rgba(37, 99, 235, 0.2) !important;
+}
+
+/* Button styling for web */
+button,
+[role="button"] {
+  background-color: #2563eb !important;
+  color: white !important;
+  border: none !important;
+  border-radius: 8px !important;
+  padding: 12px 24px !important;
+  font-weight: 600 !important;
+  cursor: pointer !important;
+  transition: background-color 0.2s !important;
+}
+
+button:hover,
+[role="button"]:hover {
+  background-color: #1d4ed8 !important;
+}
+
+/* Remove any scrollbars on web that might cause white space */
+::-webkit-scrollbar {
+  display: none;
+}
+
+html {
+  -ms-overflow-style: none;
+  scrollbar-width: none;
+}

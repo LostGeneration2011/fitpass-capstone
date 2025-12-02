@@ -144,4 +144,26 @@ export class AttendanceService {
       }
     });
   }
+
+  // Get session by ID (for QR validation)
+  async getSessionById(sessionId: string) {
+    return await prisma.session.findUnique({
+      where: { id: sessionId },
+      include: {
+        class: true
+      }
+    });
+  }
+
+  // Get enrollment by student and class (for QR validation)
+  async getEnrollmentByStudentAndClass(studentId: string, classId: string) {
+    return await prisma.enrollment.findUnique({
+      where: {
+        studentId_classId: {
+          studentId,
+          classId
+        }
+      }
+    });
+  }
 }

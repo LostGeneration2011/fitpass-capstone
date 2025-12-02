@@ -17,6 +17,19 @@ app.use(cors());
 app.use(express.json());
 app.use(morgan('dev'));
 
+// Root route
+app.get('/', (_req, res) => {
+  res.json({ 
+    name: 'FitPass API', 
+    version: '1.0.0',
+    status: 'running',
+    endpoints: {
+      health: '/health',
+      api: '/api/*'
+    }
+  });
+});
+
 // health check
 app.get('/health', (_req, res) => {
   res.json({ status: 'ok', timestamp: new Date().toISOString() });

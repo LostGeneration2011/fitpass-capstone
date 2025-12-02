@@ -1,6 +1,7 @@
 import { Router } from 'express';
 import { 
   checkIn, 
+  qrCheckIn,
   getAttendanceBySession, 
   getAttendanceByClass, 
   getAttendanceByStudent, 
@@ -11,6 +12,10 @@ const router = Router();
 
 // POST /api/attendance/check-in - Check in attendance
 router.post('/check-in', checkIn);
+
+// QR-based check-in endpoint (supports both GET and POST)
+router.get('/checkin', qrCheckIn);
+router.post('/checkin', qrCheckIn);
 
 // GET /api/attendance/session/:sessionId - Get attendance by session (alternative route)
 router.get('/session/:sessionId', (req, res) => {

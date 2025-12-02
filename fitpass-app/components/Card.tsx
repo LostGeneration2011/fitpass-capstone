@@ -1,11 +1,10 @@
 import React from 'react';
 import {
-  Card as NBCard,
-  Box,
-  VStack,
+  View,
   Text,
-  useColorModeValue
-} from 'native-base';
+  TouchableOpacity,
+  StyleSheet,
+} from 'react-native';
 
 interface CardProps {
   title?: string;
@@ -14,20 +13,55 @@ interface CardProps {
 }
 
 export default function Card({ title, children, onPress }: CardProps) {
+  if (onPress) {
+    return (
+      <TouchableOpacity style={styles.card} onPress={onPress} activeOpacity={0.7}>
+        <View style={styles.content}>
+          {title && (
+            <Text style={styles.title}>
+              {title}
+            </Text>
+          )}
+          {children}
+        </View>
+      </TouchableOpacity>
+    );
+  }
+  
   return (
-    <NBCard
-      bg={useColorModeValue('white', 'gray.800')}
-      shadow={2}
-      onPress={onPress}
-    >
-      <Box p={4}>
+    <View style={styles.card}>
+      <View style={styles.content}>
         {title && (
-          <Text fontSize="lg" fontWeight="semibold" mb={2}>
+          <Text style={styles.title}>
             {title}
           </Text>
         )}
         {children}
-      </Box>
-    </NBCard>
+      </View>
+    </View>
   );
 }
+
+const styles = StyleSheet.create({
+  card: {
+    backgroundColor: '#ffffff',
+    borderRadius: 8,
+    shadowColor: '#000',
+    shadowOffset: {
+      width: 0,
+      height: 2,
+    },
+    shadowOpacity: 0.1,
+    shadowRadius: 3.84,
+    elevation: 5,
+  },
+  content: {
+    padding: 16,
+  },
+  title: {
+    fontSize: 18,
+    fontWeight: '600',
+    marginBottom: 8,
+    color: '#333',
+  },
+});

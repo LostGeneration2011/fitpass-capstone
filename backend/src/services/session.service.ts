@@ -40,7 +40,14 @@ export class SessionService {
     return await prisma.session.findMany({
       where: { classId },
       include: {
-        class: { select: { id: true, name: true, description: true } },
+        class: { 
+          select: { 
+            id: true, 
+            name: true, 
+            description: true,
+            teacher: { select: { id: true, fullName: true } }
+          } 
+        },
         _count: { select: { attendances: true } }
       },
       orderBy: { startTime: 'asc' }
@@ -51,7 +58,14 @@ export class SessionService {
   async getAllSessions() {
     return await prisma.session.findMany({
       include: {
-        class: { select: { id: true, name: true, description: true } },
+        class: { 
+          select: { 
+            id: true, 
+            name: true, 
+            description: true,
+            teacher: { select: { id: true, fullName: true } }
+          } 
+        },
         _count: { select: { attendances: true } }
       },
       orderBy: { startTime: 'asc' }

@@ -75,6 +75,32 @@ export const updateSessionStatus = async (req: Request, res: Response) => {
   }
 };
 
+// General update session (supports status and other fields)
+export const updateSession = async (req: Request, res: Response) => {
+  try {
+    const { id } = req.params;
+    const { status } = req.body;
+
+    if (!id) {
+      return res.status(400).json({ error: "Session ID is required" });
+    }
+
+    // For now, only support status updates through general PATCH
+    if (status) {
+      if (!['UPCOMING', 'ACTIVE', 'DONE', 'CANCELLED'].includes(status)) {
+        return res.status(400).json({ error: "Invalid status" });
+      }
+      
+      const session = await sessionService.updateSessionStatus(id, status as SessionStatus);
+      return res.json({ message: "Session updated successfully", session });
+    }
+
+    return res.status(400).json({ error: "No valid fields to update" });
+  } catch (err: any) {
+    return res.status(400).json({ error: err.message });
+  }
+};
+
 export const deleteSession = async (req: Request, res: Response) => {
   try {
     const { id } = req.params;

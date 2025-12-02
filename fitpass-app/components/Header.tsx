@@ -1,11 +1,11 @@
 import React from 'react';
 import {
-  Box,
-  HStack,
+  View,
   Text,
-  IconButton,
-  useColorModeValue
-} from 'native-base';
+  TouchableOpacity,
+  StyleSheet,
+  SafeAreaView,
+} from 'react-native';
 import { Ionicons } from '@expo/vector-icons';
 
 interface HeaderProps {
@@ -22,28 +22,60 @@ export default function Header({
   rightComponent
 }: HeaderProps) {
   return (
-    <Box
-      bg={useColorModeValue('white', 'gray.800')}
-      px={4}
-      py={3}
-      safeAreaTop
-      shadow={1}
-    >
-      <HStack alignItems="center" justifyContent="space-between">
-        <HStack alignItems="center" flex={1}>
+    <SafeAreaView style={styles.safeArea}>
+      <View style={styles.container}>
+        <View style={styles.leftSection}>
           {showBack && (
-            <IconButton
-              icon={<Ionicons name="arrow-back" size={24} />}
+            <TouchableOpacity
+              style={styles.backButton}
               onPress={onBack}
-              mr={2}
-            />
+            >
+              <Ionicons name="arrow-back" size={24} color="#333" />
+            </TouchableOpacity>
           )}
-          <Text fontSize="lg" fontWeight="bold" flex={1}>
+          <Text style={styles.title}>
             {title}
           </Text>
-        </HStack>
+        </View>
         {rightComponent}
-      </HStack>
-    </Box>
+      </View>
+    </SafeAreaView>
   );
 }
+
+const styles = StyleSheet.create({
+  safeArea: {
+    backgroundColor: '#ffffff',
+  },
+  container: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'space-between',
+    paddingHorizontal: 16,
+    paddingVertical: 12,
+    backgroundColor: '#ffffff',
+    shadowColor: '#000',
+    shadowOffset: {
+      width: 0,
+      height: 1,
+    },
+    shadowOpacity: 0.1,
+    shadowRadius: 2,
+    elevation: 2,
+  },
+  leftSection: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    flex: 1,
+  },
+  backButton: {
+    marginRight: 8,
+    padding: 8,
+  },
+  title: {
+    fontSize: 18,
+    fontWeight: 'bold',
+    color: '#333',
+    flex: 1,
+  },
+});

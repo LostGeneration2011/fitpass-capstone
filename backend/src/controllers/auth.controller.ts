@@ -15,11 +15,20 @@ export const register = async (req: Request, res: Response) => {
 
 export const login = async (req: Request, res: Response) => {
   try {
+    console.log('Login request body:', req.body);
     const { email, password } = req.body;
+    
+    if (!email || !password) {
+      return res.status(400).json({ error: "Email and password are required" });
+    }
+    
+    console.log('Login attempt for:', email);
     const { user, token } = await authService.login(email, password);
-    res.json({ message: "Login successful", token, user });
+    console.log('Login successful for:', email);
+    return res.json({ message: "Login successful", token, user });
   } catch (err: any) {
-    res.status(400).json({ error: err.message });
+    console.error('Login error:', err.message);
+    return res.status(400).json({ error: err.message });
   }
 };
 
